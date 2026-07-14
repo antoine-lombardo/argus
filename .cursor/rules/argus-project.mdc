@@ -1,0 +1,19 @@
+---
+description: Argus product vision and working constraints for all work in this repo
+alwaysApply: true
+---
+
+# Argus
+
+Argus is a React Native streaming hub: one UI over many providers (Netflix, Prime Video, NHL, etc.) via plugins. Support movies, series, and live events. Plugins come from public and private repositories (Kodi-like).
+
+## Status
+
+Documentation-first. No application code until scaffolding is explicitly requested. Prefer ADRs and `docs/` over inventing a plugin runtime.
+
+## Constraints
+
+- Keep core provider-agnostic; provider logic belongs in plugins.
+- Do not implement scraping, reverse engineering, or credential circumvention for commercial services.
+- Plugin runtime, sandbox, DRM path, and monorepo layout are open questions—see `docs/PLUGIN-SYSTEM.md`. Do not treat one approach as decided.
+- Follow phases in `docs/DEVELOPMENT.md`. Read `AGENTS.md` for agent norms.
