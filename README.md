@@ -66,7 +66,7 @@ Repo details (signing, trust, update channels) are **open design questions**—s
 
 ## Status
 
-**Documentation-only.** No application code yet. Next work is to lock the product shape and design the plugin system before writing React Native scaffolding.
+**Documentation + planning complete (Phase 0).** Next: the plugin contract SDK in a separate `argus-plugin-sdk` repo (Phase 1). Code lives across separate repos from day one ([ADR 0002](docs/adr/0002-multi-repo-layout.md)). See [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md).
 
 ## Docs
 

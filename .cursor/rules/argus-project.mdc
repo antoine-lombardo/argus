@@ -26,5 +26,5 @@ The user should never have to ask for a doc update. If code and docs disagree, t
 
 - Keep core provider-agnostic; provider logic belongs in plugins.
 - Do not implement scraping, reverse engineering, or credential circumvention for commercial services.
-- Plugin runtime, sandbox, DRM path, and monorepo layout are open questions—see `docs/PLUGIN-SYSTEM.md`. Do not treat one approach as decided.
+- Plugin runtime and code layout are decided (see `docs/adr/`): in-process TS-interface plugins ([ADR 0001](docs/adr/0001-plugin-contract-ts-interfaces.md)); multi-repo from day one ([ADR 0002](docs/adr/0002-multi-repo-layout.md)). Sandbox and DRM path remain open—see `docs/PLUGIN-SYSTEM.md`.
 - Follow phases in `docs/DEVELOPMENT.md`. Read `AGENTS.md` for agent norms.

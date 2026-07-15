@@ -62,7 +62,7 @@ Provider work happens only where the plugin can use legitimate access (official 
 | Area | Direction |
 |------|-----------|
 | Client | React Native (TypeScript expected) |
-| Monorepo vs multi-repo | Undecided; may keep host here and plugins elsewhere |
+| Monorepo vs multi-repo | Decided: multi-repo from day one ([ADR 0002](adr/0002-multi-repo-layout.md)) |
 | CI | Once code exists: lint, typecheck, tests on PRs |
 | Docs | Markdown in-repo; ADRs for locking decisions |
 

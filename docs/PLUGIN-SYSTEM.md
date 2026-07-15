@@ -69,13 +69,13 @@ A plugin that only supports search + deep link is still valid.
 
 ## Open questions (must resolve before heavy implementation)
 
-1. **Runtime** — JS bundle in-process? Isolated process? Remote plugin? Native module per provider? Hybrid?
+1. **Runtime** — In-process JS/TS for v1 ([ADR 0001](../adr/0001-plugin-contract-ts-interfaces.md)); worker/WebView upgrade if isolation insufficient.
 2. **Sandbox & crash isolation** — How does a bad plugin fail without taking down the app?
 3. **Updates** — Hot-update plugins vs full app store releases?
 4. **Signing / trust** — Required for public repos? Optional for private?
 5. **DRM & store policy** — What can ship on App Store / Play while remaining useful?
-6. **Monorepo vs plugin repos** — Core-only here, plugins elsewhere?
-7. **API language** — TypeScript interfaces, JSON-RPC, schema registry?
+6. **Monorepo vs plugin repos** — Separate repos from day one ([ADR 0002](../adr/0002-multi-repo-layout.md)).
+7. **API language** — TypeScript interfaces ([ADR 0001](../adr/0001-plugin-contract-ts-interfaces.md)); schema registry for manifest only.
 8. **Offline / cache** — Who owns metadata cache: host, plugin, or both?
 
 When a question is decided, add an ADR under `docs/adr/` and link it here.

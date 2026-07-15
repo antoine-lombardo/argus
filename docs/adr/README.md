@@ -19,4 +19,11 @@ Status: Proposed | Accepted | Superseded
 ## Consequences
 ```
 
-Link accepted ADRs from [../PLUGIN-SYSTEM.md](../PLUGIN-SYSTEM.md) or [../DEVELOPMENT.md](../DEVELOPMENT.md) when relevant.
+Link accepted ADRs from [../ARCHITECTURE.md](../ARCHITECTURE.md), [../PLUGIN-SYSTEM.md](../PLUGIN-SYSTEM.md), or [../DEVELOPMENT.md](../DEVELOPMENT.md) when relevant.
+
+## Accepted
+
+| ADR | Title |
+|-----|-------|
+| [0001](0001-plugin-contract-ts-interfaces.md) | Plugin contract — TypeScript interfaces & in-process runtime |
+| [0002](0002-multi-repo-layout.md) | Multi-repo layout from the start |

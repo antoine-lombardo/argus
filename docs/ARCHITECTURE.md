@@ -28,12 +28,12 @@ Diagrams use [Mermaid](https://mermaid.js.org/). Anything marked **(default)** w
 | v1 platforms | Apple TV (tvOS) + Android TV |
 | v1 playback | In-app player with DRM (Widevine / FairPlay) |
 | v1 providers | Stub / fixture plugins only until the contract is proven |
-| Plugin runtime | JavaScript / TypeScript, in-process |
-| Plugin API style | TypeScript interfaces (host calls a typed object directly) |
+| Plugin runtime | JavaScript / TypeScript, in-process ([ADR 0001](adr/0001-plugin-contract-ts-interfaces.md)) |
+| Plugin API style | TypeScript interfaces — host calls a typed object directly ([ADR 0001](adr/0001-plugin-contract-ts-interfaces.md)) |
 | Plugin updates | Hot-download bundles from repos (no app-store release required for JS-only changes) |
 | Repositories | Official repo + user-added private repo URLs from day one |
 | Trust | Signed plugins required on the official public repo; private repos install with a user warning |
-| Code layout | Multi-repo (host, SDK, plugins, repo index separate) |
+| Code layout | Multi-repo from the start: host, SDK, plugins, repo index are separate ([ADR 0002](adr/0002-multi-repo-layout.md)) |
 | Auth storage | Per-plugin secure-storage namespace |
 | Search | Federated, parallel queries across enabled plugins |
 | Live vs VOD | Equal priority in the media model and UI |
@@ -486,30 +486,33 @@ flowchart TB
 
 ---
 
-## Repository topology (multi-repo)
+## Repository topology
+
+**Separate repositories from day one** — see [ADR 0002](adr/0002-multi-repo-layout.md). No monorepo phase.
 
 ```mermaid
 flowchart LR
-  SDK["@argus/plugin-sdk<br/>(npm)"]
+  SDK["argus-plugin-sdk<br/>@argus/plugin-sdk (npm)"]
   Host[argus<br/>host TV app]
   Plugins[argus-plugins<br/>official + stub]
   Index[argus-repo-index<br/>official index.json + artifacts]
+  Private[private repos]
 
-  SDK -->|dev dependency, types| Host
-  SDK -->|dev dependency, types| Plugins
+  SDK -->|dependency, types| Host
+  SDK -->|dependency, types| Plugins
   Plugins -->|built .argus-plugin + signature| Index
   Index -->|served over HTTPS| Host
-  PrivateRepos[private repos] -->|user-added URL| Host
+  Private -->|user-added URL| Host
 ```
 
 | Repo | Purpose | Notes |
 |------|---------|-------|
-| `argus` (this repo) | Host TV app + docs | Expo RN app |
+| `argus` (this repo) | Host TV app (Expo RN) + docs | Consumes `@argus/plugin-sdk` |
 | `argus-plugin-sdk` | Contract types, manifest schema, contract tests, plugin template | Published as `@argus/plugin-sdk` |
-| `argus-plugins` | Official + stub plugins | Builds signed artifacts |
-| `argus-repo-index` | Official repo index + hosted artifacts | Can be GitHub Pages/Releases |
+| `argus-plugins` | Official + stub/reference plugins | Builds signed `.argus-plugin` artifacts |
+| `argus-repo-index` | Official `index.json` + hosted artifacts | GitHub Pages / Releases / static host |
 
-For a solo team, start with the **host + SDK** and keep the stub plugin *inside the host repo* until the contract stabilizes, then extract to `argus-plugins`. This avoids premature multi-repo overhead while preserving the target topology.
+`argus-plugin-sdk` is created first (Phase 1) so the host and plugins depend on a real, versioned contract. During early local iteration the host/plugins may consume the SDK via a git dependency or `npm link` before it is published.
 
 ---
 
@@ -530,11 +533,13 @@ For a solo team, start with the **host + SDK** and keep the stub plugin *inside 
 
 Decisions above marked **(default)** are provisional. These warrant an ADR under `docs/adr/` when tackled. Priority order:
 
-1. **Plugin runtime isolation** — keep in-process vs move to worker/WebView; crash-containment guarantees.
-2. **DRM player** — exact native module / library for Widevine + FairPlay on tvOS + Android TV under Expo.
-3. **Hot-update & store policy** — what OTA plugin delivery is acceptable on the App Store / Play.
-4. **Repo index & signing format** — finalize `index.json` schema + Ed25519 signing/verification flow.
+1. **DRM player** — exact native module / library for Widevine + FairPlay on tvOS + Android TV under Expo.
+2. **Hot-update & store policy** — what OTA plugin delivery is acceptable on the App Store / Play.
+3. **Repo index & signing format** — finalize `index.json` schema + Ed25519 signing/verification flow.
+4. **Plugin runtime isolation** — upgrade from in-process if crash containment is insufficient ([ADR 0001](adr/0001-plugin-contract-ts-interfaces.md) documents v1 choice).
 5. **Media aggregation** — cross-provider dedup/matching strategy and identifiers.
 6. **Continue-watching reconciliation** — precise merge semantics across host and plugins.
+
+**Accepted ADRs:** [0001](adr/0001-plugin-contract-ts-interfaces.md) (plugin contract & runtime), [0002](adr/0002-multi-repo-layout.md) (multi-repo layout).
 
 Each resolved ADR should update the relevant section here and the [implementation plan](IMPLEMENTATION-PLAN.md).

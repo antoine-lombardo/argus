@@ -13,9 +13,9 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 
 | Field | Value |
 |-------|-------|
-| Current phase | Phase 0 — planning docs |
+| Current phase | Phase 1 — plugin contract + SDK skeleton |
 | Last updated | 2026-07-14 |
-| Next milestone | Phase 1 — plugin contract + SDK skeleton |
+| Next milestone | `@argus/plugin-sdk` types + contract tests |
 | Blockers | None |
 
 ---
@@ -27,10 +27,10 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 - [x] Vision, development, plugin-system docs
 - [x] Architecture doc with diagrams ([ARCHITECTURE.md](ARCHITECTURE.md))
 - [x] This implementation plan
-- [ ] Create `docs/adr/0001-*` for the first locked decision (template in `docs/adr/README.md`)
-- [ ] Decide starting repo strategy: host + stub in this repo now; extract `argus-plugins` later (per ARCHITECTURE topology)
+- [x] ADR 0001: plugin contract — TS interfaces & in-process runtime ([0001](adr/0001-plugin-contract-ts-interfaces.md))
+- [x] ADR 0002: multi-repo layout from the start — separate host / SDK / plugins / repo-index repos ([0002](adr/0002-multi-repo-layout.md))
 
-**Exit criteria:** architecture + plan reviewed; ready to scaffold.
+**Exit criteria:** architecture + plan reviewed; ready to scaffold. **Met 2026-07-14.**
 
 ---
 
@@ -44,9 +44,9 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 - [ ] Define `StreamDescriptor` + DRM info types
 - [ ] Define error taxonomy (`AUTH_REQUIRED`, `GEO_BLOCKED`, `NOT_AVAILABLE`, `DRM_UNSUPPORTED`, `RATE_LIMITED`, `PLUGIN_ERROR`)
 - [ ] Define capability enum + timeout constants
-- [ ] Package as `@argus/plugin-sdk` (types only in v0), with `tsconfig`, build, and exports
+- [ ] Create the `argus-plugin-sdk` repo; package as `@argus/plugin-sdk` with `tsconfig`, build, and exports
 - [ ] Contract fixture tests (validate a sample plugin object against the interface + manifest schema)
-- [ ] Write ADR: **API language & contract shape** (TS interfaces confirmed)
+- [ ] Write ADR: **API language & contract shape** (TS interfaces confirmed) — covered by [ADR 0001](adr/0001-plugin-contract-ts-interfaces.md); no separate ADR needed
 
 **Exit criteria:** SDK builds; a fake object type-checks against `ArgusPlugin`; manifest schema validates a sample manifest.
 
@@ -105,7 +105,7 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 - [ ] Per-plugin secure storage namespace (native keychain module); ADR: **secure storage**
 - [ ] Per-plugin cache / KV store
 - [ ] Settings access wired to plugin `settingsSchema`
-- [ ] Build the **stub plugin** implementing search/getDetails/getPlayback/getLive against fixtures
+- [ ] Build the **stub plugin** (in the `argus-plugins` repo) implementing search/getDetails/getPlayback/getLive against fixtures
 - [ ] Host loads the stub plugin and renders its results in the real screens
 - [ ] Federated search aggregator: parallel fan-out, partial results, timeout, dedup
 
@@ -165,13 +165,12 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 
 ---
 
-## Phase 7 — Multi-repo extraction & first reference plugin
+## Phase 7 — Publish SDK & first reference plugin
 
-**Goal:** move to the target topology and prove the contributor path.
+**Goal:** prove the contributor path on the multi-repo layout that already exists ([ADR 0002](adr/0002-multi-repo-layout.md)).
 
-- [ ] Extract SDK to `argus-plugin-sdk`; publish `@argus/plugin-sdk`
-- [ ] Extract plugins to `argus-plugins`; wire signed-build CI → `argus-repo-index`
-- [ ] Stand up `argus-repo-index` (official `index.json` + artifact hosting)
+- [ ] Publish `@argus/plugin-sdk` to npm (from the `argus-plugin-sdk` repo) and switch host/plugins off git-dep/`npm link`
+- [ ] Harden `argus-plugins` signed-build CI → `argus-repo-index`
 - [ ] Plugin template / `create-argus-plugin` (or documented copy-the-stub)
 - [ ] One **reference plugin** against a legal/open API exercising the full contract
 - [ ] Contributor docs: writing, building, signing, publishing a plugin
@@ -200,6 +199,8 @@ Record confirmations/changes to `(default)` decisions here; link the ADR.
 | Date | Decision | ADR | Notes |
 |------|----------|-----|-------|
 | 2026-07-14 | Core stack, runtime, repos, trust, platforms (see ARCHITECTURE "Locked decisions") | — | Captured from planning Q&A |
+| 2026-07-14 | Plugin contract: TS interfaces, in-process JS, hot-download, JS-only plugins v1 | [0001](adr/0001-plugin-contract-ts-interfaces.md) | Phase 0 complete |
+| 2026-07-14 | Multi-repo from day one: `argus` (host), `argus-plugin-sdk`, `argus-plugins`, `argus-repo-index` | [0002](adr/0002-multi-repo-layout.md) | Phase 0 complete; supersedes earlier phased-monorepo idea |
 
 ---
 
@@ -212,5 +213,5 @@ Record confirmations/changes to `(default)` decisions here; link the ADR.
 | EAS build quota/cost for TV + CI | Low | Start free tier; self-hosted Gradle for Android as fallback |
 | Store rejects hot-updated JS plugins | High | Keep plugins JS-only; spike store policy before relying on OTA |
 | In-process plugin crashes host | Med | Timeouts, error boundaries, circuit breaker; isolation ADR if needed |
-| Multi-repo overhead for solo dev | Med | Start host+SDK together; extract plugins later |
+| Multi-repo overhead for solo dev | Med | Keep each repo minimal; automate releases; use `npm link`/git deps for fast local iteration ([ADR 0002](adr/0002-multi-repo-layout.md)) |
 | Federated search slow plugin | Med | Timeouts + partial results + loading UX |
