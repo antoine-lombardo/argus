@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/argus-logo-icon.png" alt="Argus logo" width="160" height="160" />
+</p>
+
 # Argus
 
 One place for every stream.
