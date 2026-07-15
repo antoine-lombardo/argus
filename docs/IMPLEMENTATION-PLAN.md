@@ -13,9 +13,9 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 
 | Field | Value |
 |-------|-------|
-| Current phase | Phase 1 — plugin contract + SDK skeleton |
+| Current phase | Phase 1 complete → starting Phase 2 (host shell) |
 | Last updated | 2026-07-15 |
-| Next milestone | Runtime contract tests (manifest schema validation) + Phase 2 host shell |
+| Next milestone | Expo RN TV app scaffold + early DRM spike (Phase 2) |
 | Blockers | None |
 
 ---
@@ -45,10 +45,10 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 - [x] Define error taxonomy (`AUTH_REQUIRED`, `GEO_BLOCKED`, `NOT_AVAILABLE`, `DRM_UNSUPPORTED`, `RATE_LIMITED`, `PLUGIN_ERROR`) — `ArgusError`
 - [x] Define capability enum + timeout constants (`Capability`, `DEFAULT_TIMEOUTS`, `API_VERSION`)
 - [x] Create the `argus-plugin-sdk` repo; package as `@argus-tv/plugin-sdk` with `tsconfig`, build, and exports
-- [~] Contract fixture tests — compile-time check done (fixture plugin type-checks against `ArgusPlugin`); runtime manifest-schema validation test (Ajv) still to add
+- [x] Contract fixture tests — compile-time (fixture plugin type-checks against `ArgusPlugin`) + runtime (Vitest + Ajv manifest-schema validation in `test/manifest.test.ts`)
 - [x] Write ADR: **API language & contract shape** (TS interfaces confirmed) — covered by [ADR 0001](adr/0001-plugin-contract-ts-interfaces.md); no separate ADR needed
 
-**Exit criteria:** SDK builds; a fake object type-checks against `ArgusPlugin` ✅ ; manifest schema validates a sample manifest (runtime test pending).
+**Exit criteria:** SDK builds ✅ ; a fake object type-checks against `ArgusPlugin` ✅ ; manifest schema validates a sample manifest ✅ . **Phase 1 met 2026-07-15** — `@argus-tv/plugin-sdk@0.1.0` published to npm (`next`).
 
 ---
 
@@ -204,6 +204,7 @@ Record confirmations/changes to `(default)` decisions here; link the ADR.
 | 2026-07-14 | Multi-repo from day one: `argus` (host), `argus-plugin-sdk`, `argus-plugins`, `argus-repo-index` | [0002](adr/0002-multi-repo-layout.md) | Phase 0 complete; supersedes earlier phased-monorepo idea |
 | 2026-07-15 | `@argus-tv/plugin-sdk` skeleton: contract types, manifest JSON Schema, `apiVersion` `0.1`; ESM + TS, types-first (no runtime SDK coupling) | [0001](adr/0001-plugin-contract-ts-interfaces.md) | Phase 1 in progress; builds + fixture type-checks |
 | 2026-07-15 | npm scope `@argus-tv` (bare `@argus` taken); publish `0.x` under `next` dist-tag; Changesets + Actions release automation with provenance | — | See [PACKAGING.md](PACKAGING.md#sdk-npm-package-argus-tvplugin-sdk) |
+| 2026-07-15 | Phase 1 complete: contract has compile-time (fixture) + runtime (Vitest/Ajv) tests; `@argus-tv/plugin-sdk@0.1.0` shipped | [0001](adr/0001-plugin-contract-ts-interfaces.md) | Next: Phase 2 host shell |
 
 ---
 
