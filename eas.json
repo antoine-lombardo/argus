@@ -39,15 +39,21 @@
       "extends": "preview",
       "env": {
         "EXPO_TV": "1"
+      },
+      "ios": {
+        "simulator": false
       }
     },
     "production": {
       "autoIncrement": true
     },
     "production_tv": {
-      "extends": "production", 
+      "extends": "production",
       "env": {
         "EXPO_TV": "1"
+      },
+      "ios": {
+        "simulator": false
       }
     }
   },

@@ -1,0 +1,163 @@
+name: Build host app
+
+on:
+  push:
+    tags:
+      - 'argus@*'
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Platform to build
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - android
+          - ios
+      profile:
+        description: EAS build profile
+        required: true
+        default: preview_tv
+        type: choice
+        options:
+          - preview_tv
+          - production_tv
+      submit_testflight:
+        description: Submit tvOS build to TestFlight (ios only)
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: build-host-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: android
+            label: Android TV
+            artifact: argus-android-tv.apk
+          - platform: ios
+            label: tvOS
+            artifact: argus-tvos.ipa
+    steps:
+      - name: Skip matrix row
+        id: skip
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && \
+                "${{ inputs.platform }}" != "all" && \
+                "${{ inputs.platform }}" != "${{ matrix.platform }}" ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v7
+        if: steps.skip.outputs.skip != 'true'
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        if: steps.skip.outputs.skip != 'true'
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: expo/expo-github-action@v8
+        if: steps.skip.outputs.skip != 'true'
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        if: steps.skip.outputs.skip != 'true'
+        run: npm ci
+
+      - name: EAS build
+        if: steps.skip.outputs.skip != 'true'
+        env:
+          EAS_BUILD_PROFILE: ${{ github.event_name == 'workflow_dispatch' && inputs.profile || 'preview_tv' }}
+        run: |
+          set -o pipefail
+          eas build \
+            --platform ${{ matrix.platform }} \
+            --profile "$EAS_BUILD_PROFILE" \
+            --non-interactive \
+            --wait \
+            --json | tee "build-${{ matrix.platform }}.json"
+
+      - name: Resolve artifact URL
+        if: steps.skip.outputs.skip != 'true'
+        id: resolve
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const platform = '${{ matrix.platform }}';
+          const raw = fs.readFileSync(`build-${platform}.json`, 'utf8').trim();
+          const parsed = JSON.parse(raw);
+          const build = Array.isArray(parsed) ? parsed[0] : parsed;
+          const url =
+            build?.artifacts?.applicationArchiveUrl ||
+            build?.artifacts?.buildUrl ||
+            build?.artifacts?.url;
+          if (!url) {
+            console.error(`No artifact URL for ${platform}:`);
+            console.error(JSON.stringify(build, null, 2));
+            process.exit(1);
+          }
+          const out = process.env.GITHUB_OUTPUT;
+          fs.appendFileSync(out, `artifact_url=${url}\n`);
+          NODE
+
+      - name: Download build artifact
+        if: steps.skip.outputs.skip != 'true'
+        run: curl -fSL --retry 3 --retry-delay 5 -o "${{ matrix.artifact }}" "${{ steps.resolve.outputs.artifact_url }}"
+
+      - name: Upload workflow artifact
+        if: steps.skip.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
+          retention-days: 30
+
+      - name: Submit to TestFlight
+        if: steps.skip.outputs.skip != 'true' && matrix.platform == 'ios' && github.event_name == 'workflow_dispatch' && inputs.submit_testflight
+        env:
+          EAS_BUILD_PROFILE: ${{ inputs.profile }}
+        run: |
+          eas submit \
+            --platform ios \
+            --profile "$EAS_BUILD_PROFILE" \
+            --latest \
+            --non-interactive \
+            --wait
+
+  release:
+    name: GitHub Release assets
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: argus-*
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            argus-android-tv.apk
+            argus-tvos.ipa
+          fail_on_unmatched_files: false
+          make_latest: true

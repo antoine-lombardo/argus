@@ -15,7 +15,7 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 | -------------- | --------------------------------------------------------- |
 | Current phase  | Phase 2 in progress (host shell scaffolded)               |
 | Last updated   | 2026-07-15                                                |
-| Next milestone | TV UI library ADR + Zustand stores + DRM spike (Phase 2b) |
+| Next milestone | `eas init` + first Android TV CI build; TV UI library ADR + DRM spike |
 | Blockers       | None                                                      |
 
 ---
@@ -63,7 +63,7 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 - [ ] Set up Zustand stores (search, library, plugins, player)
 - [ ] Project structure by layer (presentation / application / domain / platform) per ARCHITECTURE
 - [~] Tooling: ESLint, Prettier/Biome, strict `tsconfig`, path aliases — ESLint (`eslint-config-expo`) + strict `tsconfig` + `@/*` paths done; Biome/Prettier TBD
-- [ ] CI: typecheck + lint + unit tests on PR
+- [x] CI: typecheck + lint on PR (`ci.yml`) (2026-07-15)
 
 ### 2b. DRM spike (high risk — do early)
 
@@ -85,13 +85,12 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 ### 2d. Build & distribution (see [PACKAGING.md](PACKAGING.md))
 
 - [x] Add `eas.json` with `development` / `preview` / `production` profiles (+ `*_tv` variants); versioning wired: Changesets for `expo.version`, EAS `autoIncrement` + `appVersionSource: remote` for build numbers ([ADR 0003](adr/0003-app-versioning.md)) (2026-07-15)
-- [ ] Android TV: produce a signed APK; install on a real device via `adb install`
-- [ ] Manage Android upload keystore as a CI secret
-- [ ] `ci.yml`: typecheck + lint + unit tests on PR (Linux runner)
-- [ ] `build-android.yml`: build APK on tag/dispatch, upload artifact (EAS or Gradle); ADR: **build engine (EAS vs self-hosted)**
+- [ ] Android TV: produce a signed APK; install on a real device via `adb install` — `build-host.yml` on `argus@*` tag (needs `EXPO_TOKEN` + `eas init`)
+- [ ] Manage Android upload keystore as a CI secret — deferred; EAS manages credentials by default (`preview_tv` uses `withoutCredentials` for fast internal APKs)
+- [x] `ci.yml`: typecheck + lint on PR (Linux runner) (2026-07-15)
+- [x] `build-host.yml`: EAS Android TV + tvOS on `argus@*` tag / dispatch → artifacts + GitHub Release (2026-07-15)
 - [ ] Apple Developer Program enrollment + App Store Connect app record
-- [ ] tvOS: TestFlight internal build via `eas build` + `eas submit` (or ad-hoc + Apple Configurator)
-- [ ] `build-tvos.yml`: build + submit to TestFlight on tag/dispatch
+- [ ] tvOS: TestFlight internal build via `build-host.yml` (TestFlight dispatch) or `eas submit` locally
 - [ ] (Optional) Firebase App Distribution for Android testers
 
 **Exit criteria:** app runs on both TV platforms, navigates via D-pad, plays a clear stream, renders fixture data; a tagged commit produces installable Android TV + tvOS builds via GitHub Actions.
@@ -211,6 +210,7 @@ Record confirmations/changes to `(default)` decisions here; link the ADR.
 | 2026-07-15 | Phase 1 complete: contract has compile-time (fixture) + runtime (Vitest/Ajv) tests; `@argus-tv/plugin-sdk@0.1.0` shipped                   | [0001](adr/0001-plugin-contract-ts-interfaces.md) | Next: Phase 2 host shell                                            |
 | 2026-07-15 | Host scaffold: Expo SDK 57 + `with-router-tv` + `react-native-tvos@0.86-stable`; `npm overrides` for TV fork peer resolution               | —                                                 | Phase 2a started                                                    |
 | 2026-07-15 | Host app versioning: Changesets owns `expo.version` (via `app.config.ts`, private/no-publish, tags `argus@<version>`); EAS owns build number (`autoIncrement`, `appVersionSource: remote`) | [0003](adr/0003-app-versioning.md) | Mirrors SDK's Changesets flow |
+| 2026-07-15 | CI + EAS build workflows: `ci.yml`, `build-host.yml` on `argus@*` tag; EAS default over self-hosted Gradle/Xcode | — | Needs `EXPO_TOKEN` + `eas init` |
 
 ---
 

@@ -99,6 +99,16 @@ Install the recommended [**Expo Tools**](https://marketplace.visualstudio.com/it
 | Debug | **Run and Debug → Debug Apple TV** or **Debug Android TV** |
 | Attach only | **Run and Debug → Attach** |
 
+### CI / releases
+
+| Action | How |
+|--------|-----|
+| PR checks | `ci.yml` — typecheck + lint |
+| Version bump | `npm run changeset` → merge **chore: version packages** PR → `argus@<version>` tag |
+| Build host app | Tag push or **Actions → Build host app → Run workflow** (android / ios / both) |
+
+One-time: `eas init` + add **`EXPO_TOKEN`** repo secret — see [docs/PACKAGING.md](docs/PACKAGING.md#one-time-setup-host-app).
+
 ## Development
 
 Prerequisites: Node.js 22+, Xcode 16+ (tvOS), Android Studio Iguana+ (Android TV).

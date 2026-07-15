@@ -128,17 +128,50 @@ flowchart TB
   Artifacts --> Store2[tvOS to TestFlight via eas submit]
 ```
 
-### Workflows (planned)
+### Workflows
 
-1. **`ci.yml`** — on PR: install, typecheck, lint, unit tests (Linux runner, cheap, no native build).
-2. **`build-android.yml`** — on tag/dispatch: build signed Android TV APK.
-   - Path A (default): `eas build -p android --profile preview --non-interactive` with `EXPO_TOKEN`.
-   - Path B: Gradle build on `ubuntu-latest`, sign with keystore secret, upload APK artifact / push to Firebase App Distribution.
-3. **`build-tvos.yml`** — on tag/dispatch: build + optionally submit tvOS.
-   - Path A (default): `eas build -p ios --profile preview` then `eas submit -p ios` to TestFlight (uses Expo infra; no macOS runner needed).
-   - Path B: `macos-latest` runner + Xcode + `fastlane`/manual signing (more setup).
+1. **`ci.yml`** — on PR + push to `main`: `npm ci`, typecheck, lint.
+2. **`release.yml`** — on push to `main`: Changesets version PR or `argus@<version>` git tag ([ADR 0003](adr/0003-app-versioning.md)).
+3. **`build-host.yml`** — on `argus@*` tag or manual dispatch: EAS `preview_tv` / `production_tv` for Android TV + tvOS → workflow artifacts + single GitHub Release; optional TestFlight submit (dispatch, ios only).
 
-### Secrets needed
+```mermaid
+flowchart LR
+  PR[Pull request] --> CI[ci.yml]
+  Main[Push to main] --> Release[release.yml]
+  Release -->|merge version PR| Tag[argus@version tag]
+  Tag --> Build[build-host.yml]
+  Build --> APK[APK + IPA artifacts + Release]
+```
+
+### One-time setup (host app)
+
+Before the first EAS build from CI:
+
+1. **Expo account** — `npx expo login` (or `logout` then `login` if the SDK 57 session bug appears).
+2. **Link the EAS project** — from the repo root:
+
+   ```bash
+   eas init
+   ```
+
+   This adds `extra.eas.projectId` to the app config (commit the change). Required for `appVersionSource: remote` and hosted builds.
+
+3. **GitHub secret** — create an [Expo access token](https://expo.dev/accounts/[account]/settings/access-tokens) and add **`EXPO_TOKEN`** under the repo's Actions secrets.
+
+4. **Manual smoke build** (recommended once):
+
+   ```bash
+   eas build -p android --profile preview_tv
+   ```
+
+   Confirms TV native project + credentials before relying on CI.
+
+5. **tvOS / TestFlight** (when you need a physical Apple TV):
+   - Apple Developer Program + App Store Connect app record
+   - Apple credentials stored in EAS (`eas credentials`)
+   - Run **Build host app** workflow with **ios** + **Submit to TestFlight**, or `eas submit` locally
+
+### Secrets
 
 | Secret | Used for |
 |--------|----------|
