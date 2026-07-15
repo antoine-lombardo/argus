@@ -21,6 +21,27 @@ This is a standing requirement. The user must **never** have to ask you to updat
 
 If code and docs disagree, that is a bug: fix the docs as part of the same work. Set "Last updated" to the current date when you touch the plan.
 
+## Multi-repo layout
+
+Argus spans separate repos ([ADR 0002](docs/adr/0002-multi-repo-layout.md)):
+
+| Repo | Purpose |
+|------|---------|
+| `argus` (this repo) | Host TV app + product/process docs |
+| `argus-plugin-sdk` | The plugin contract, published to npm as `@argus-tv/plugin-sdk` |
+| `argus-plugins` | Official + reference plugins |
+| `argus-repo-index` | Official repo index + artifacts |
+
+Each code repo carries its own `AGENTS.md`; read the one for the repo you're in.
+
+## Releasing the SDK (`@argus-tv/plugin-sdk`)
+
+Publishing is **automated** — never hand-edit the version, run `npm publish`, or
+tag manually. To release: add a **changeset** (`npm run changeset`) with your
+change, push to `main`, then **merge the auto-generated "Version Packages" PR**;
+that publishes to npm (provenance, `next` dist-tag for `0.x`). Full runbook:
+`argus-plugin-sdk/AGENTS.md`; process reference: [docs/PACKAGING.md](docs/PACKAGING.md#sdk-npm-package-argus-tvplugin-sdk).
+
 ## Before writing code
 
 1. Read [README.md](README.md), [docs/VISION.md](docs/VISION.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md), [docs/PACKAGING.md](docs/PACKAGING.md), [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md), and [docs/PLUGIN-SYSTEM.md](docs/PLUGIN-SYSTEM.md).

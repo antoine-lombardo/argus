@@ -9,7 +9,7 @@ Argus is a React Native streaming hub: one UI over many providers (Netflix, Prim
 
 ## Status
 
-Documentation-first. No application code until scaffolding is explicitly requested. Prefer ADRs and `docs/` over inventing a plugin runtime.
+Implementation has begun (Phase 1). The plugin contract is real code in the `argus-plugin-sdk` repo, published to npm as `@argus-tv/plugin-sdk`. The host app (`argus`) is still docs-only—don't scaffold the RN app until asked. Prefer ADRs and `docs/` over inventing new plugin-runtime behavior.
 
 ## Keep living docs updated (non-negotiable)
 
@@ -27,4 +27,5 @@ The user should never have to ask for a doc update. If code and docs disagree, t
 - Keep core provider-agnostic; provider logic belongs in plugins.
 - Do not implement scraping, reverse engineering, or credential circumvention for commercial services.
 - Plugin runtime and code layout are decided (see `docs/adr/`): in-process TS-interface plugins ([ADR 0001](docs/adr/0001-plugin-contract-ts-interfaces.md)); multi-repo from day one ([ADR 0002](docs/adr/0002-multi-repo-layout.md)). Sandbox and DRM path remain open—see `docs/PLUGIN-SYSTEM.md`.
+- Releasing the SDK is automated: add a **changeset**, push to `main`, merge the auto-generated "Version Packages" PR to publish `@argus-tv/plugin-sdk` (never hand-edit the version or run `npm publish`). See `argus-plugin-sdk/AGENTS.md` and `docs/PACKAGING.md`.
 - Follow phases in `docs/DEVELOPMENT.md`. Read `AGENTS.md` for agent norms.
