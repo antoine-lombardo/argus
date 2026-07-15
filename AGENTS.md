@@ -8,11 +8,25 @@ Argus is a **React Native** streaming hub: one UI over many providers (Netflix, 
 
 There is **no app code yet**—only product and process docs. Prefer updating docs over inventing implementation.
 
+## Keep the living docs updated — always, unprompted
+
+This is a standing requirement. The user must **never** have to ask you to update docs. Whenever your change affects them, update these in the **same** change:
+
+| Doc | Update when… |
+|-----|--------------|
+| [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md) | You start/finish a task, hit a blocker, or make a decision. Check off tasks, refresh the **status snapshot** (phase / last updated / next milestone / blockers), append to the **decision log** and **risk register**. |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | A design detail changes, or a `(default)` becomes decided (also add/link an ADR in `docs/adr/`). |
+| [docs/PACKAGING.md](docs/PACKAGING.md) | Anything about builds, distribution, or CI changes. |
+| [README.md](README.md) / this file | Docs are added, moved, or norms change—keep the docs table and links current. |
+
+If code and docs disagree, that is a bug: fix the docs as part of the same work. Set "Last updated" to the current date when you touch the plan.
+
 ## Before writing code
 
-1. Read [README.md](README.md), [docs/VISION.md](docs/VISION.md), [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md), and [docs/PLUGIN-SYSTEM.md](docs/PLUGIN-SYSTEM.md).
-2. Treat open questions in those docs as **unresolved**. Do not hard-code a plugin runtime, sandbox, or DRM approach as if it were decided.
+1. Read [README.md](README.md), [docs/VISION.md](docs/VISION.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md), [docs/PACKAGING.md](docs/PACKAGING.md), [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md), and [docs/PLUGIN-SYSTEM.md](docs/PLUGIN-SYSTEM.md).
+2. Treat items marked **(default)** or listed under open questions as **provisional**. Do not lock a plugin runtime, sandbox, or DRM approach without an ADR.
 3. Prefer design notes, ADRs, or RFCs in `docs/` before scaffolding packages or dependencies.
+4. When implementing, work through [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md) and **keep it updated** (check off tasks, add notes, link ADRs/PRs).
 
 ## Scope rules
 

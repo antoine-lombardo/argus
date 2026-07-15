@@ -73,6 +73,9 @@ Repo details (signing, trust, update channels) are **open design questions**—s
 | Doc | What it covers |
 |-----|----------------|
 | [docs/VISION.md](docs/VISION.md) | Product vision and principles |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Technical architecture, diagrams, plugin/repo/DRM design |
+| [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md) | Living step-by-step build plan (updated as we implement) |
+| [docs/PACKAGING.md](docs/PACKAGING.md) | How the app is built, distributed to test devices, and built in CI |
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | How we plan to build Argus |
 | [docs/PLUGIN-SYSTEM.md](docs/PLUGIN-SYSTEM.md) | Plugin design goals and open questions |
 | [AGENTS.md](AGENTS.md) | Guidance for coding agents |

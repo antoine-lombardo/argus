@@ -11,6 +11,17 @@ Argus is a React Native streaming hub: one UI over many providers (Netflix, Prim
 
 Documentation-first. No application code until scaffolding is explicitly requested. Prefer ADRs and `docs/` over inventing a plugin runtime.
 
+## Keep living docs updated (non-negotiable)
+
+Whenever you make a change that affects them, update these docs **in the same change, without being asked**:
+
+- `docs/IMPLEMENTATION-PLAN.md` — check off / add tasks, update the status snapshot (phase, last updated, next milestone, blockers), decision log, and risk register.
+- `docs/ARCHITECTURE.md` — reflect any design change; when a `(default)` becomes decided, update it and add/link an ADR in `docs/adr/`.
+- `docs/PACKAGING.md` — reflect any build/distribution/CI change.
+- `README.md` docs table + `AGENTS.md` — keep links and norms current when docs are added or moved.
+
+The user should never have to ask for a doc update. If code and docs disagree, treat it as a bug and fix the docs.
+
 ## Constraints
 
 - Keep core provider-agnostic; provider logic belongs in plugins.

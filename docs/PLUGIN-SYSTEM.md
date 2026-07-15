@@ -2,7 +2,7 @@
 
 Goal: each streaming provider is a **plugin**. The Argus host discovers plugins from **repositories** (public and private), installs them, and talks to them through a stable API.
 
-This document captures **intent and open questions**. Nothing here is a final API.
+This document captures **intent and open questions**. Nothing here is a final API. For the decisions taken during planning and the concrete design (contract sketch, packaging, repo/index format, trust, DRM), see [ARCHITECTURE.md](ARCHITECTURE.md); for the build order see [IMPLEMENTATION-PLAN.md](IMPLEMENTATION-PLAN.md).
 
 ## Inspiration
 

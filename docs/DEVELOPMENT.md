@@ -2,6 +2,8 @@
 
 How Argus will be built. This is a plan, not a commitment to dates or stack locks.
 
+> The high-level phases below are now detailed, task-by-task, in [IMPLEMENTATION-PLAN.md](IMPLEMENTATION-PLAN.md) (living tracker), with the technical design in [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## Current phase: foundation docs
 
 Deliverable: shared understanding in markdown (this folder, README, AGENTS).
