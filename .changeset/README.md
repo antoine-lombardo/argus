@@ -1,7 +1,7 @@
 # Changesets
 
 This folder drives the **host app's user-facing version** (`package.json` →
-`app.config.ts` → `expo.version`). It mirrors the flow used by
+`app.config.js` → `expo.version`). It mirrors the flow used by
 `argus-plugin-sdk`, but this package is **private**: Changesets versions and
 tags it, and **never publishes to npm**. The build number is owned by EAS
 (`autoIncrement`), not Changesets.

@@ -33,7 +33,7 @@ Options considered:
 **Split ownership of the two numbers:**
 
 1. **Marketing version → Changesets.** `package.json` `version` is the single
-   source of truth. `app.config.ts` reads it and sets `expo.version`, so the
+   source of truth. `app.config.js` reads it and sets `expo.version`, so the
    version is never hand-edited in `app.json`. The package stays
    `"private": true`; Changesets is configured with
    `privatePackages: { version: true, tag: true }` so it **versions and tags but
@@ -61,7 +61,7 @@ Options considered:
 **Negative / mitigations**
 
 - Changesets doesn't understand `app.json`; the version indirection lives in
-  `app.config.ts`. *Mitigation:* a 3-line wrapper, documented here and in
+  `app.config.js`. *Mitigation:* a 3-line wrapper, documented here and in
   `.changeset/README.md`.
 - `appVersionSource: "remote"` requires an EAS project (`eas init`) before the
   first build. *Accepted:* build/submit wiring is a later phase-2d task; the

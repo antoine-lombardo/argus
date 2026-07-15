@@ -197,11 +197,11 @@ The app has **two independent numbers** ([ADR 0003](adr/0003-app-versioning.md))
 
 | Number | Field | Owner | Cadence |
 |--------|-------|-------|---------|
-| Marketing version | `expo.version` (from `package.json` via `app.config.ts`) | **Changesets** | per release |
+| Marketing version | `expo.version` (from `package.json` via `app.config.js`) | **Changesets** | per release |
 | Build number | `ios.buildNumber` / `android.versionCode` | **EAS** (`autoIncrement`, `appVersionSource: "remote"`) | every build |
 
 **Marketing version (Changesets, no npm publish).** `package.json` `version` is
-the single source of truth; `app.config.ts` feeds it into `expo.version`. The
+the single source of truth; `app.config.js` feeds it into `expo.version`. The
 package is `"private": true` and `.changeset/config.json` sets
 `privatePackages: { version: true, tag: true }`, so Changesets **versions and
 tags but never publishes**. This mirrors the SDK's flow so both repos share one

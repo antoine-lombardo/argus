@@ -57,6 +57,13 @@
     },
     "name": "Argus",
     "slug": "argus",
-    "scheme": "argus"
+    "scheme": "argus",
+    "owner": "argus-tv",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9c5ba843-de0b-4f93-a0ff-83be2e867dc7"
+      }
+    }
   }
 }

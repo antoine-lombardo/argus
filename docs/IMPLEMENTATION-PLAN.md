@@ -85,7 +85,8 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 ### 2d. Build & distribution (see [PACKAGING.md](PACKAGING.md))
 
 - [x] Add `eas.json` with `development` / `preview` / `production` profiles (+ `*_tv` variants); versioning wired: Changesets for `expo.version`, EAS `autoIncrement` + `appVersionSource: remote` for build numbers ([ADR 0003](adr/0003-app-versioning.md)) (2026-07-15)
-- [ ] Android TV: produce a signed APK; install on a real device via `adb install` — `build-host.yml` on `argus@*` tag (needs `EXPO_TOKEN` + `eas init`)
+- [ ] Android TV: produce a signed APK; install on a real device via `adb install` — `build-host.yml` on `argus@*` tag (needs `EXPO_TOKEN`)
+- [x] Link EAS project (`eas init`, `@argus-tv/argus`, `extra.eas.projectId` in `app.json`) (2026-07-15)
 - [ ] Manage Android upload keystore as a CI secret — deferred; EAS manages credentials by default (`preview_tv` uses `withoutCredentials` for fast internal APKs)
 - [x] `ci.yml`: typecheck + lint on PR (Linux runner) (2026-07-15)
 - [x] `build-host.yml`: EAS Android TV + tvOS on `argus@*` tag / dispatch → artifacts + GitHub Release (2026-07-15)
@@ -209,8 +210,8 @@ Record confirmations/changes to `(default)` decisions here; link the ADR.
 | 2026-07-15 | npm scope `@argus-tv` (bare `@argus` taken); publish `0.x` under `next` dist-tag; Changesets + Actions release automation with provenance  | —                                                 | See [PACKAGING.md](PACKAGING.md#sdk-npm-package-argus-tvplugin-sdk) |
 | 2026-07-15 | Phase 1 complete: contract has compile-time (fixture) + runtime (Vitest/Ajv) tests; `@argus-tv/plugin-sdk@0.1.0` shipped                   | [0001](adr/0001-plugin-contract-ts-interfaces.md) | Next: Phase 2 host shell                                            |
 | 2026-07-15 | Host scaffold: Expo SDK 57 + `with-router-tv` + `react-native-tvos@0.86-stable`; `npm overrides` for TV fork peer resolution               | —                                                 | Phase 2a started                                                    |
-| 2026-07-15 | Host app versioning: Changesets owns `expo.version` (via `app.config.ts`, private/no-publish, tags `argus@<version>`); EAS owns build number (`autoIncrement`, `appVersionSource: remote`) | [0003](adr/0003-app-versioning.md) | Mirrors SDK's Changesets flow |
-| 2026-07-15 | CI + EAS build workflows: `ci.yml`, `build-host.yml` on `argus@*` tag; EAS default over self-hosted Gradle/Xcode | — | Needs `EXPO_TOKEN` + `eas init` |
+| 2026-07-15 | Host app versioning: Changesets owns `expo.version` (via `app.config.js`, private/no-publish, tags `argus@<version>`); EAS owns build number (`autoIncrement`, `appVersionSource: remote`) | [0003](adr/0003-app-versioning.md) | Mirrors SDK's Changesets flow |
+| 2026-07-15 | CI + EAS build workflows: `ci.yml`, `build-host.yml` on `argus@*` tag; EAS default over self-hosted Gradle/Xcode | — | `EXPO_TOKEN` + `@argus-tv/argus` EAS project linked |
 
 ---
 
