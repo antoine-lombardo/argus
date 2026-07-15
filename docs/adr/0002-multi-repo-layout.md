@@ -13,8 +13,8 @@ Use **separate repositories from day one**. No monorepo phase.
 
 | Repo | Purpose | Notes |
 |------|---------|-------|
-| `argus` (this repo) | Host TV app (Expo RN) + product/process docs | Consumes `@argus/plugin-sdk` |
-| `argus-plugin-sdk` | Contract types, manifest schema, contract tests, plugin template | Published as `@argus/plugin-sdk` |
+| `argus` (this repo) | Host TV app (Expo RN) + product/process docs | Consumes `@argus-tv/plugin-sdk` |
+| `argus-plugin-sdk` | Contract types, manifest schema, contract tests, plugin template | Published as `@argus-tv/plugin-sdk` |
 | `argus-plugins` | Official + stub/reference plugins | Builds signed `.argus-plugin` artifacts |
 | `argus-repo-index` | Official `index.json` + hosted artifacts | GitHub Pages / Releases / static host |
 

@@ -14,8 +14,8 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 | Field | Value |
 |-------|-------|
 | Current phase | Phase 1 — plugin contract + SDK skeleton |
-| Last updated | 2026-07-14 |
-| Next milestone | `@argus/plugin-sdk` types + contract tests |
+| Last updated | 2026-07-15 |
+| Next milestone | Runtime contract tests (manifest schema validation) + Phase 2 host shell |
 | Blockers | None |
 
 ---
@@ -38,17 +38,17 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 
 **Goal:** a typed, testable contract a stub plugin can implement — the foundation everything else depends on.
 
-- [ ] Define media model DTOs: `MediaId`, `MediaItem`, `MediaDetails`, `Season`, `Episode`, `LiveEvent`, `Artwork`, `Person`
-- [ ] Define `ArgusPlugin` interface + `HostContext` (http, secureStore, cache, log, settings)
-- [ ] Define `PluginManifest` type + JSON Schema (id, version, apiVersion, capabilities, permissions, platforms, settingsSchema)
-- [ ] Define `StreamDescriptor` + DRM info types
-- [ ] Define error taxonomy (`AUTH_REQUIRED`, `GEO_BLOCKED`, `NOT_AVAILABLE`, `DRM_UNSUPPORTED`, `RATE_LIMITED`, `PLUGIN_ERROR`)
-- [ ] Define capability enum + timeout constants
-- [ ] Create the `argus-plugin-sdk` repo; package as `@argus/plugin-sdk` with `tsconfig`, build, and exports
-- [ ] Contract fixture tests (validate a sample plugin object against the interface + manifest schema)
-- [ ] Write ADR: **API language & contract shape** (TS interfaces confirmed) — covered by [ADR 0001](adr/0001-plugin-contract-ts-interfaces.md); no separate ADR needed
+- [x] Define media model DTOs: `MediaId`, `MediaItem`, `MediaDetails`, `Season`, `Episode`, `LiveEvent`, `Artwork`, `Person`
+- [x] Define `ArgusPlugin` interface + `HostContext` (http, secureStore, cache, log, settings)
+- [x] Define `PluginManifest` type + JSON Schema (id, version, apiVersion, capabilities, permissions, platforms, settingsSchema) — `manifestJsonSchema` export
+- [x] Define `StreamDescriptor` + DRM info types
+- [x] Define error taxonomy (`AUTH_REQUIRED`, `GEO_BLOCKED`, `NOT_AVAILABLE`, `DRM_UNSUPPORTED`, `RATE_LIMITED`, `PLUGIN_ERROR`) — `ArgusError`
+- [x] Define capability enum + timeout constants (`Capability`, `DEFAULT_TIMEOUTS`, `API_VERSION`)
+- [x] Create the `argus-plugin-sdk` repo; package as `@argus-tv/plugin-sdk` with `tsconfig`, build, and exports
+- [~] Contract fixture tests — compile-time check done (fixture plugin type-checks against `ArgusPlugin`); runtime manifest-schema validation test (Ajv) still to add
+- [x] Write ADR: **API language & contract shape** (TS interfaces confirmed) — covered by [ADR 0001](adr/0001-plugin-contract-ts-interfaces.md); no separate ADR needed
 
-**Exit criteria:** SDK builds; a fake object type-checks against `ArgusPlugin`; manifest schema validates a sample manifest.
+**Exit criteria:** SDK builds; a fake object type-checks against `ArgusPlugin` ✅ ; manifest schema validates a sample manifest (runtime test pending).
 
 ---
 
@@ -169,7 +169,8 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 
 **Goal:** prove the contributor path on the multi-repo layout that already exists ([ADR 0002](adr/0002-multi-repo-layout.md)).
 
-- [ ] Publish `@argus/plugin-sdk` to npm (from the `argus-plugin-sdk` repo) and switch host/plugins off git-dep/`npm link`
+- [x] Release automation for `@argus-tv/plugin-sdk` (Changesets + GitHub Actions, npm provenance, `next` dist-tag) — see [PACKAGING.md](PACKAGING.md#sdk-npm-package-argus-tvplugin-sdk)
+- [ ] First actual npm publish (needs `NPM_TOKEN` secret + org PR-permission enabled), then switch host/plugins off git-dep/`npm link`
 - [ ] Harden `argus-plugins` signed-build CI → `argus-repo-index`
 - [ ] Plugin template / `create-argus-plugin` (or documented copy-the-stub)
 - [ ] One **reference plugin** against a legal/open API exercising the full contract
@@ -201,6 +202,8 @@ Record confirmations/changes to `(default)` decisions here; link the ADR.
 | 2026-07-14 | Core stack, runtime, repos, trust, platforms (see ARCHITECTURE "Locked decisions") | — | Captured from planning Q&A |
 | 2026-07-14 | Plugin contract: TS interfaces, in-process JS, hot-download, JS-only plugins v1 | [0001](adr/0001-plugin-contract-ts-interfaces.md) | Phase 0 complete |
 | 2026-07-14 | Multi-repo from day one: `argus` (host), `argus-plugin-sdk`, `argus-plugins`, `argus-repo-index` | [0002](adr/0002-multi-repo-layout.md) | Phase 0 complete; supersedes earlier phased-monorepo idea |
+| 2026-07-15 | `@argus-tv/plugin-sdk` skeleton: contract types, manifest JSON Schema, `apiVersion` `0.1`; ESM + TS, types-first (no runtime SDK coupling) | [0001](adr/0001-plugin-contract-ts-interfaces.md) | Phase 1 in progress; builds + fixture type-checks |
+| 2026-07-15 | npm scope `@argus-tv` (bare `@argus` taken); publish `0.x` under `next` dist-tag; Changesets + Actions release automation with provenance | — | See [PACKAGING.md](PACKAGING.md#sdk-npm-package-argus-tvplugin-sdk) |
 
 ---
 

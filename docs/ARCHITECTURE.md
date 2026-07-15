@@ -187,7 +187,7 @@ sequenceDiagram
 
 ### Plugin contract (v0 sketch)
 
-The exact types live in the SDK (`@argus/plugin-sdk`). Sketch:
+The exact types live in the SDK (`@argus-tv/plugin-sdk`). Sketch:
 
 ```typescript
 export interface ArgusPlugin {
@@ -492,7 +492,7 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-  SDK["argus-plugin-sdk<br/>@argus/plugin-sdk (npm)"]
+  SDK["argus-plugin-sdk<br/>@argus-tv/plugin-sdk (npm)"]
   Host[argus<br/>host TV app]
   Plugins[argus-plugins<br/>official + stub]
   Index[argus-repo-index<br/>official index.json + artifacts]
@@ -507,8 +507,8 @@ flowchart LR
 
 | Repo | Purpose | Notes |
 |------|---------|-------|
-| `argus` (this repo) | Host TV app (Expo RN) + docs | Consumes `@argus/plugin-sdk` |
-| `argus-plugin-sdk` | Contract types, manifest schema, contract tests, plugin template | Published as `@argus/plugin-sdk` |
+| `argus` (this repo) | Host TV app (Expo RN) + docs | Consumes `@argus-tv/plugin-sdk` |
+| `argus-plugin-sdk` | Contract types, manifest schema, contract tests, plugin template | Published as `@argus-tv/plugin-sdk` |
 | `argus-plugins` | Official + stub/reference plugins | Builds signed `.argus-plugin` artifacts |
 | `argus-repo-index` | Official `index.json` + hosted artifacts | GitHub Pages / Releases / static host |
 

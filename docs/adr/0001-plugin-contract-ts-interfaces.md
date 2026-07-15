@@ -22,7 +22,7 @@ The team is small; iteration speed and a clear typed contract matter more than m
 4. **Updates:** plugins are **hot-downloaded** from repo indexes; JS-only plugin changes do not require a host app-store release (subject to store-policy validation in a later spike).
 5. **Isolation compensations (v1):** per-call timeouts, `AbortSignal`, error boundaries, and a per-plugin circuit breaker — not a separate process.
 
-Contract types live in `@argus/plugin-sdk` (see [0002-multi-repo-layout.md](0002-multi-repo-layout.md)).
+Contract types live in `@argus-tv/plugin-sdk` (see [0002-multi-repo-layout.md](0002-multi-repo-layout.md)).
 
 ## Consequences
 

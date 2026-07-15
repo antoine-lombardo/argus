@@ -4,7 +4,9 @@ How Argus is built and delivered to devices. Scope for now: **private developers
 
 Complements [ARCHITECTURE.md](ARCHITECTURE.md) (what the app is) and [IMPLEMENTATION-PLAN.md](IMPLEMENTATION-PLAN.md) (build order). Items marked **(default)** are provisional and can change via an ADR.
 
-> Note: this is about shipping the **host app**. Plugin packaging/distribution (`.argus-plugin`, repo index) is separate — see [ARCHITECTURE.md](ARCHITECTURE.md#repository-system).
+> Note: this is mainly about shipping the **host app**. Two related-but-separate distribution tracks:
+> - **Plugin packaging/distribution** (`.argus-plugin`, repo index) — see [ARCHITECTURE.md](ARCHITECTURE.md#repository-system).
+> - **The SDK npm package** (`@argus-tv/plugin-sdk`) — see [SDK npm package](#sdk-npm-package-argus-tvplugin-sdk) below.
 
 ## Goals
 
@@ -151,6 +153,45 @@ Store all in GitHub Actions secrets; never commit them (matches the no-secrets-i
 
 - **App version** from `app.json`/`app.config.ts`; auto-increment **build number** in CI (EAS `autoIncrement` or a CI step).
 - Tag releases (e.g. `v0.1.0`) to trigger build workflows; attach artifacts to the GitHub Release for Android.
+
+---
+
+## SDK npm package (`@argus-tv/plugin-sdk`)
+
+The plugin contract ships as a versioned npm package that the host and every
+plugin depend on. It lives in the `argus-plugin-sdk` repo and is **types-first**
+(no runtime SDK coupling; consumers bundle their own deps).
+
+### Versioning & release (automated)
+
+- **Tooling:** [Changesets](https://github.com/changesets/changesets) drives
+  semver bumps + `CHANGELOG.md`; GitHub Actions publishes.
+- **Flow:** author adds a changeset (`npm run changeset`) → push to `main`
+  opens a **"Version Packages"** PR → merging it **publishes to npm**.
+- **Provenance:** published with npm [provenance](https://docs.npmjs.com/generating-provenance-statements)
+  via OIDC (`id-token: write`), so the registry links each release to the
+  building workflow + commit.
+- **Dist-tag:** while the contract is `0.x` it publishes under the **`next`**
+  tag (`npm i @argus-tv/plugin-sdk@next`); `latest` is reserved for the first
+  stable `1.0.0`. Stabilizing means removing `publishConfig.tag` and bumping.
+- **Local iteration:** before/around publishing, the host and plugins can
+  consume the SDK via `npm link` or a git dependency ([ADR 0002](adr/0002-multi-repo-layout.md)).
+
+### Workflows (in `argus-plugin-sdk`)
+
+1. **`ci.yml`** — on PR/push: `npm ci`, `typecheck`, `build`.
+2. **`release.yml`** — on push to `main`: `changesets/action` opens the version
+   PR or publishes when one is merged.
+
+### Secrets & one-time setup
+
+| Secret / setting | Used for |
+|------------------|----------|
+| `NPM_TOKEN` | Granular **automation** token scoped to the `@argus-tv` org, used by `release.yml` to publish |
+| *Settings → Actions → General* | Enable **"Allow GitHub Actions to create and approve pull requests"** so the Version Packages PR can be opened |
+
+> The `@argus-tv` npm org is owned by the project. `publishConfig.access` is
+> `public` so the scoped package is publicly installable.
 
 ---
 
