@@ -11,12 +11,12 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 
 ## Status snapshot
 
-| Field | Value |
-|-------|-------|
-| Current phase | Phase 2 in progress (host shell scaffolded) |
-| Last updated | 2026-07-15 |
+| Field          | Value                                                     |
+| -------------- | --------------------------------------------------------- |
+| Current phase  | Phase 2 in progress (host shell scaffolded)               |
+| Last updated   | 2026-07-15                                                |
 | Next milestone | TV UI library ADR + Zustand stores + DRM spike (Phase 2b) |
-| Blockers | None |
+| Blockers       | None                                                      |
 
 ---
 
@@ -57,6 +57,7 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 **Goal:** a runnable TV app skeleton with navigation and screens, no real plugins.
 
 ### 2a. Scaffold
+
 - [x] Init Expo app with dev client, TypeScript, tvOS + Android TV targets — `with-router-tv` example, upgraded to **Expo SDK 57** + `react-native-tvos@0.86-stable` (2026-07-15)
 - [ ] Choose + integrate RN TV component/focus library; ADR: **TV UI library**
 - [ ] Set up Zustand stores (search, library, plugins, player)
@@ -65,12 +66,14 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 - [ ] CI: typecheck + lint + unit tests on PR
 
 ### 2b. DRM spike (high risk — do early)
+
 - [ ] Spike in-app playback with DRM on **tvOS** (FairPlay) and **Android TV** (Widevine)
 - [ ] Evaluate: existing RN video lib vs custom Expo native module
 - [ ] Play a clear HLS stream end-to-end; then a DRM-protected test stream
 - [ ] Write ADR: **DRM player module** (record what works / limits / store implications)
 
 ### 2c. Screens (fixtures)
+
 - [ ] Sidebar/rail navigation shell with focus management
 - [ ] Home screen (rows from fixtures)
 - [ ] Search screen (on-screen keyboard + results grid, debounced)
@@ -80,7 +83,8 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 - [ ] Settings screen (global + placeholder per-plugin)
 
 ### 2d. Build & distribution (see [PACKAGING.md](PACKAGING.md))
-- [ ] Add `eas.json` with `development` / `preview` profiles (or local prebuild scripts)
+
+- [x] Add `eas.json` with `development` / `preview` / `production` profiles (+ `*_tv` variants); versioning wired: Changesets for `expo.version`, EAS `autoIncrement` + `appVersionSource: remote` for build numbers ([ADR 0003](adr/0003-app-versioning.md)) (2026-07-15)
 - [ ] Android TV: produce a signed APK; install on a real device via `adb install`
 - [ ] Manage Android upload keystore as a CI secret
 - [ ] `ci.yml`: typecheck + lint + unit tests on PR (Linux runner)
@@ -197,26 +201,27 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 
 Record confirmations/changes to `(default)` decisions here; link the ADR.
 
-| Date | Decision | ADR | Notes |
-|------|----------|-----|-------|
-| 2026-07-14 | Core stack, runtime, repos, trust, platforms (see ARCHITECTURE "Locked decisions") | — | Captured from planning Q&A |
-| 2026-07-14 | Plugin contract: TS interfaces, in-process JS, hot-download, JS-only plugins v1 | [0001](adr/0001-plugin-contract-ts-interfaces.md) | Phase 0 complete |
-| 2026-07-14 | Multi-repo from day one: `argus` (host), `argus-plugin-sdk`, `argus-plugins`, `argus-repo-index` | [0002](adr/0002-multi-repo-layout.md) | Phase 0 complete; supersedes earlier phased-monorepo idea |
-| 2026-07-15 | `@argus-tv/plugin-sdk` skeleton: contract types, manifest JSON Schema, `apiVersion` `0.1`; ESM + TS, types-first (no runtime SDK coupling) | [0001](adr/0001-plugin-contract-ts-interfaces.md) | Phase 1 in progress; builds + fixture type-checks |
-| 2026-07-15 | npm scope `@argus-tv` (bare `@argus` taken); publish `0.x` under `next` dist-tag; Changesets + Actions release automation with provenance | — | See [PACKAGING.md](PACKAGING.md#sdk-npm-package-argus-tvplugin-sdk) |
-| 2026-07-15 | Phase 1 complete: contract has compile-time (fixture) + runtime (Vitest/Ajv) tests; `@argus-tv/plugin-sdk@0.1.0` shipped | [0001](adr/0001-plugin-contract-ts-interfaces.md) | Next: Phase 2 host shell |
-| 2026-07-15 | Host scaffold: Expo SDK 57 + `with-router-tv` + `react-native-tvos@0.86-stable`; `npm overrides` for TV fork peer resolution | — | Phase 2a started |
+| Date       | Decision                                                                                                                                   | ADR                                               | Notes                                                               |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------- | ------------------------------------------------------------------- |
+| 2026-07-14 | Core stack, runtime, repos, trust, platforms (see ARCHITECTURE "Locked decisions")                                                         | —                                                 | Captured from planning Q&A                                          |
+| 2026-07-14 | Plugin contract: TS interfaces, in-process JS, hot-download, JS-only plugins v1                                                            | [0001](adr/0001-plugin-contract-ts-interfaces.md) | Phase 0 complete                                                    |
+| 2026-07-14 | Multi-repo from day one: `argus` (host), `argus-plugin-sdk`, `argus-plugins`, `argus-repo-index`                                           | [0002](adr/0002-multi-repo-layout.md)             | Phase 0 complete; supersedes earlier phased-monorepo idea           |
+| 2026-07-15 | `@argus-tv/plugin-sdk` skeleton: contract types, manifest JSON Schema, `apiVersion` `0.1`; ESM + TS, types-first (no runtime SDK coupling) | [0001](adr/0001-plugin-contract-ts-interfaces.md) | Phase 1 in progress; builds + fixture type-checks                   |
+| 2026-07-15 | npm scope `@argus-tv` (bare `@argus` taken); publish `0.x` under `next` dist-tag; Changesets + Actions release automation with provenance  | —                                                 | See [PACKAGING.md](PACKAGING.md#sdk-npm-package-argus-tvplugin-sdk) |
+| 2026-07-15 | Phase 1 complete: contract has compile-time (fixture) + runtime (Vitest/Ajv) tests; `@argus-tv/plugin-sdk@0.1.0` shipped                   | [0001](adr/0001-plugin-contract-ts-interfaces.md) | Next: Phase 2 host shell                                            |
+| 2026-07-15 | Host scaffold: Expo SDK 57 + `with-router-tv` + `react-native-tvos@0.86-stable`; `npm overrides` for TV fork peer resolution               | —                                                 | Phase 2a started                                                    |
+| 2026-07-15 | Host app versioning: Changesets owns `expo.version` (via `app.config.ts`, private/no-publish, tags `argus@<version>`); EAS owns build number (`autoIncrement`, `appVersionSource: remote`) | [0003](adr/0003-app-versioning.md) | Mirrors SDK's Changesets flow |
 
 ---
 
 ## Risk register
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| DRM unworkable under Expo on TV | High | Early spike (2b); fall back to custom native module or revisit playback scope |
-| tvOS distribution friction (no sideload; needs paid Apple account + TestFlight) | Med | Enroll early; Android TV first for fast iteration ([PACKAGING.md](PACKAGING.md)) |
-| EAS build quota/cost for TV + CI | Low | Start free tier; self-hosted Gradle for Android as fallback |
-| Store rejects hot-updated JS plugins | High | Keep plugins JS-only; spike store policy before relying on OTA |
-| In-process plugin crashes host | Med | Timeouts, error boundaries, circuit breaker; isolation ADR if needed |
-| Multi-repo overhead for solo dev | Med | Keep each repo minimal; automate releases; use `npm link`/git deps for fast local iteration ([ADR 0002](adr/0002-multi-repo-layout.md)) |
-| Federated search slow plugin | Med | Timeouts + partial results + loading UX |
+| Risk                                                                            | Impact | Mitigation                                                                                                                              |
+| ------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| DRM unworkable under Expo on TV                                                 | High   | Early spike (2b); fall back to custom native module or revisit playback scope                                                           |
+| tvOS distribution friction (no sideload; needs paid Apple account + TestFlight) | Med    | Enroll early; Android TV first for fast iteration ([PACKAGING.md](PACKAGING.md))                                                        |
+| EAS build quota/cost for TV + CI                                                | Low    | Start free tier; self-hosted Gradle for Android as fallback                                                                             |
+| Store rejects hot-updated JS plugins                                            | High   | Keep plugins JS-only; spike store policy before relying on OTA                                                                          |
+| In-process plugin crashes host                                                  | Med    | Timeouts, error boundaries, circuit breaker; isolation ADR if needed                                                                    |
+| Multi-repo overhead for solo dev                                                | Med    | Keep each repo minimal; automate releases; use `npm link`/git deps for fast local iteration ([ADR 0002](adr/0002-multi-repo-layout.md)) |
+| Federated search slow plugin                                                    | Med    | Timeouts + partial results + loading UX                                                                                                 |

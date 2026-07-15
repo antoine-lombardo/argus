@@ -27,3 +27,4 @@ Link accepted ADRs from [../ARCHITECTURE.md](../ARCHITECTURE.md), [../PLUGIN-SYS
 |-----|-------|
 | [0001](0001-plugin-contract-ts-interfaces.md) | Plugin contract — TypeScript interfaces & in-process runtime |
 | [0002](0002-multi-repo-layout.md) | Multi-repo layout from the start |
+| [0003](0003-app-versioning.md) | Host app versioning — Changesets for version, EAS for build number |

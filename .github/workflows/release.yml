@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # bump version, create + push the git tag
+      pull-requests: write # open/update the "version packages" PR
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      # When changesets exist -> open/update the version PR (`version-packages`).
+      # When none remain (PR merged) -> run `release` = `changeset tag`, which
+      # creates the `argus@<version>` git tag. The app is private, so nothing is
+      # published to npm; the tag is what triggers the EAS build workflows.
+      - name: Version PR or tag release
+        uses: changesets/action@v1.9.0
+        with:
+          version: npm run version-packages
+          publish: npm run release
+          commit: "chore: version packages"
+          title: "chore: version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

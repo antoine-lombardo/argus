@@ -151,8 +151,47 @@ Store all in GitHub Actions secrets; never commit them (matches the no-secrets-i
 
 ### Versioning builds
 
-- **App version** from `app.json`/`app.config.ts`; auto-increment **build number** in CI (EAS `autoIncrement` or a CI step).
-- Tag releases (e.g. `v0.1.0`) to trigger build workflows; attach artifacts to the GitHub Release for Android.
+See [Host app versioning](#host-app-versioning) below for the decided flow
+([ADR 0003](adr/0003-app-versioning.md)). In short: **Changesets** owns the
+marketing version, **EAS** owns the build number, and merging the version PR
+tags the release to trigger the build workflows.
+
+---
+
+## Host app versioning
+
+The app has **two independent numbers** ([ADR 0003](adr/0003-app-versioning.md)):
+
+| Number | Field | Owner | Cadence |
+|--------|-------|-------|---------|
+| Marketing version | `expo.version` (from `package.json` via `app.config.ts`) | **Changesets** | per release |
+| Build number | `ios.buildNumber` / `android.versionCode` | **EAS** (`autoIncrement`, `appVersionSource: "remote"`) | every build |
+
+**Marketing version (Changesets, no npm publish).** `package.json` `version` is
+the single source of truth; `app.config.ts` feeds it into `expo.version`. The
+package is `"private": true` and `.changeset/config.json` sets
+`privatePackages: { version: true, tag: true }`, so Changesets **versions and
+tags but never publishes**. This mirrors the SDK's flow so both repos share one
+model: *add a changeset → merge the version PR*.
+
+Flow:
+
+1. Add a changeset with your change: `npm run changeset` (commit it).
+2. Push to `main` → the **Release** workflow (`.github/workflows/release.yml`)
+   opens/updates a **"chore: version packages"** PR.
+3. **Merge that PR** → `package.json` + `CHANGELOG.md` bump, and
+   `changeset tag` creates + pushes the `argus@<version>` git tag.
+
+**Build number (EAS).** `eas.json` sets `cli.appVersionSource: "remote"` and
+`autoIncrement: true` on `preview` / `production` (the `*_tv` profiles inherit).
+EAS increments `buildNumber` / `versionCode` on its servers — no per-build
+commit, no TestFlight collisions. Requires an EAS project (`eas init`) before
+the first build.
+
+**Trigger.** The `argus@<version>` tag is the intended entry point for the EAS
+build workflows (`build-android.yml` / `build-tvos.yml`), which match `argus@*`.
+Those workflows are a later [phase-2d task](IMPLEMENTATION-PLAN.md); the tag +
+version config are in place ahead of them.
 
 ---
 

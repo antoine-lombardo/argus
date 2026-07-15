@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 3.15.1"
+    "version": ">= 3.15.1",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -25,6 +26,7 @@
     "preview": {
       "extends": "production",
       "distribution": "internal",
+      "autoIncrement": true,
       "ios": {
         "simulator": true
       },
@@ -39,7 +41,9 @@
         "EXPO_TV": "1"
       }
     },
-    "production": {},
+    "production": {
+      "autoIncrement": true
+    },
     "production_tv": {
       "extends": "production", 
       "env": {
