@@ -53,9 +53,11 @@ export function TabButton({
   return (
     <Pressable
       {...props}
-      style={({ pressed, focused, hovered }) =>
-        (pressed || focused || hovered) && styles.pressed
-      }
+      style={(state) => {
+        const hovered = 'hovered' in state ? state.hovered : false;
+        const { pressed, focused } = state;
+        return pressed || focused || hovered ? styles.pressed : undefined;
+      }}
     >
       <ThemedView
         type={isFocused ? 'backgroundSelected' : 'backgroundElement'}

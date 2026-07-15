@@ -113,7 +113,9 @@ const PressableButton = (props: {
       onPressOut={() => props.log(`${props.title} onPressOut`)}
       onLongPress={() => props.log(`${props.title} onLongPress`)}
     >
-      {({ focused, hovered, pressed }) => {
+      {(state) => {
+        const hovered = 'hovered' in state ? state.hovered : false;
+        const { focused, pressed } = state;
         return (
           <LinearGradient
             colors={[theme.gradientStart, theme.gradientEnd]}
