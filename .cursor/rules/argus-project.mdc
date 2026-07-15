@@ -9,7 +9,7 @@ Argus is a React Native streaming hub: one UI over many providers (Netflix, Prim
 
 ## Status
 
-Implementation has begun (Phase 1). The plugin contract is real code in the `argus-plugin-sdk` repo, published to npm as `@argus-tv/plugin-sdk`. The host app (`argus`) is still docs-only—don't scaffold the RN app until asked. Prefer ADRs and `docs/` over inventing new plugin-runtime behavior.
+Implementation has begun (Phase 2). The plugin contract is real code in the `argus-plugin-sdk` repo, published to npm as `@argus-tv/plugin-sdk`. The host app (`argus`) is an Expo SDK 57 TV scaffold (`with-router-tv` + `react-native-tvos`). Prefer ADRs and `docs/` over inventing new plugin-runtime behavior.
 
 ## Keep living docs updated (non-negotiable)
 

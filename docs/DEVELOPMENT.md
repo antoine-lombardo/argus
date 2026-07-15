@@ -4,11 +4,11 @@ How Argus will be built. This is a plan, not a commitment to dates or stack lock
 
 > The high-level phases below are now detailed, task-by-task, in [IMPLEMENTATION-PLAN.md](IMPLEMENTATION-PLAN.md) (living tracker), with the technical design in [ARCHITECTURE.md](ARCHITECTURE.md).
 
-## Current phase: foundation docs
+## Current phase: host shell (Phase 2)
 
-Deliverable: shared understanding in markdown (this folder, README, AGENTS).
+Deliverable: Expo SDK 57 TV app with navigation scaffold, moving toward fixture screens and DRM spike.
 
-**Exit criteria:** vision, phases, and plugin open questions are written and agreed enough to start an ADR or spike.
+**Exit criteria:** runnable TV app on tvOS + Android TV with D-pad navigation and a clear stream playing.
 
 ## Phases
 

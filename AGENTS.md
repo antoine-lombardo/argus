@@ -6,7 +6,7 @@ Instructions for AI agents and contributors working in this repository.
 
 Argus is a **React Native** streaming hub: one UI over many providers (Netflix, Prime Video, NHL, etc.) via **plugins**. It must support **movies, series, and live events**. Plugins are discovered from **public and private repositories** (Kodi-like model).
 
-There is **no app code yet**—only product and process docs. Prefer updating docs over inventing implementation.
+The **host TV app** lives in this repo (Expo SDK 57, `react-native-tvos`, Expo Router). Product and process docs live under `docs/`.
 
 ## Keep the living docs updated — always, unprompted
 

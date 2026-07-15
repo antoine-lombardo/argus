@@ -13,9 +13,9 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 
 | Field | Value |
 |-------|-------|
-| Current phase | Phase 1 complete → starting Phase 2 (host shell) |
+| Current phase | Phase 2 in progress (host shell scaffolded) |
 | Last updated | 2026-07-15 |
-| Next milestone | Expo RN TV app scaffold + early DRM spike (Phase 2) |
+| Next milestone | TV UI library ADR + Zustand stores + DRM spike (Phase 2b) |
 | Blockers | None |
 
 ---
@@ -57,11 +57,11 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 **Goal:** a runnable TV app skeleton with navigation and screens, no real plugins.
 
 ### 2a. Scaffold
-- [ ] Init Expo app with dev client, TypeScript, tvOS + Android TV targets
+- [x] Init Expo app with dev client, TypeScript, tvOS + Android TV targets — `with-router-tv` example, upgraded to **Expo SDK 57** + `react-native-tvos@0.86-stable` (2026-07-15)
 - [ ] Choose + integrate RN TV component/focus library; ADR: **TV UI library**
 - [ ] Set up Zustand stores (search, library, plugins, player)
 - [ ] Project structure by layer (presentation / application / domain / platform) per ARCHITECTURE
-- [ ] Tooling: ESLint, Prettier/Biome, strict `tsconfig`, path aliases
+- [~] Tooling: ESLint, Prettier/Biome, strict `tsconfig`, path aliases — ESLint (`eslint-config-expo`) + strict `tsconfig` + `@/*` paths done; Biome/Prettier TBD
 - [ ] CI: typecheck + lint + unit tests on PR
 
 ### 2b. DRM spike (high risk — do early)
@@ -205,6 +205,7 @@ Record confirmations/changes to `(default)` decisions here; link the ADR.
 | 2026-07-15 | `@argus-tv/plugin-sdk` skeleton: contract types, manifest JSON Schema, `apiVersion` `0.1`; ESM + TS, types-first (no runtime SDK coupling) | [0001](adr/0001-plugin-contract-ts-interfaces.md) | Phase 1 in progress; builds + fixture type-checks |
 | 2026-07-15 | npm scope `@argus-tv` (bare `@argus` taken); publish `0.x` under `next` dist-tag; Changesets + Actions release automation with provenance | — | See [PACKAGING.md](PACKAGING.md#sdk-npm-package-argus-tvplugin-sdk) |
 | 2026-07-15 | Phase 1 complete: contract has compile-time (fixture) + runtime (Vitest/Ajv) tests; `@argus-tv/plugin-sdk@0.1.0` shipped | [0001](adr/0001-plugin-contract-ts-interfaces.md) | Next: Phase 2 host shell |
+| 2026-07-15 | Host scaffold: Expo SDK 57 + `with-router-tv` + `react-native-tvos@0.86-stable`; `npm overrides` for TV fork peer resolution | — | Phase 2a started |
 
 ---
 

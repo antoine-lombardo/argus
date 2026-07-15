@@ -70,7 +70,47 @@ Repo details (signing, trust, update channels) are **open design questions**—s
 
 ## Status
 
-**Documentation + planning complete (Phase 0).** Next: the plugin contract SDK in a separate `argus-plugin-sdk` repo (Phase 1). Code lives across separate repos from day one ([ADR 0002](docs/adr/0002-multi-repo-layout.md)). See [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md).
+**Phase 2 in progress** — Expo SDK 57 TV app scaffolded (`with-router-tv` + `react-native-tvos@0.86-stable`). Plugin contract shipped as `@argus-tv/plugin-sdk@0.1.0` (Phase 1 complete). See [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md).
+
+## Development
+
+Prerequisites: Node.js 22+, Xcode 16+ (tvOS), Android Studio Iguana+ (Android TV).
+
+```bash
+npm ci
+npm run prebuild:tv   # EXPO_TV=1 — generates tvOS + Android TV native projects
+npm run ios           # Apple TV simulator
+npm run android       # Android TV emulator
+```
+
+TV builds use [`@react-native-tvos/config-tv`](https://github.com/react-native-tvos/config-tv) and the `EXPO_TV=1` env var (set automatically by `prebuild:tv` and EAS `*_tv` profiles in `eas.json`).
+
+### VS Code / Cursor
+
+Install the recommended [**Expo Tools**](https://marketplace.visualstudio.com/items?itemName=expo.vscode-expo) extension (`.vscode/extensions.json`).
+
+| Action | How |
+|--------|-----|
+| Start Metro | **Run Task → Start Metro** |
+| Prebuild | **Run Task → Prebuild** (once, before first native run) |
+| Run Apple TV | **Run Task → Run Apple TV** |
+| Run Android TV | **Run Task → Run Android TV** |
+| Physical TV device | `npm run start:device` |
+| Debug | **Run and Debug → Debug Apple TV** or **Debug Android TV** |
+| Attach only | **Run and Debug → Attach** |
+
+## Development
+
+Prerequisites: Node.js 22+, Xcode 16+ (tvOS), Android Studio Iguana+ (Android TV).
+
+```bash
+npm ci
+npm run prebuild:tv   # EXPO_TV=1 — generates tvOS + Android TV native projects
+npm run ios           # Apple TV simulator
+npm run android       # Android TV emulator
+```
+
+TV builds use [`@react-native-tvos/config-tv`](https://github.com/react-native-tvos/config-tv) and the `EXPO_TV=1` env var (set automatically by `prebuild:tv` and EAS `*_tv` profiles in `eas.json`).
 
 ## Docs
 
