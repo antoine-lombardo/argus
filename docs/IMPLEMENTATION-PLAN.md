@@ -14,9 +14,9 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 | Field          | Value                                                     |
 | -------------- | --------------------------------------------------------- |
 | Current phase  | Phase 2 in progress (2a scaffold + focus ADR)             |
-| Last updated   | 2026-07-16                                                |
-| Next milestone | First TestFlight via `staging_tv`; Phase 2c sidebar/rail; DRM spike (2b) |
-| Blockers       | tvOS TestFlight: `eas submit -p ios` delivers the tvOS IPA as iOS (Apple rejects ITMS-90508/90545/90713/90039). Upload the EAS-built IPA via Transporter.app / `altool -t appletvos` instead |
+| Last updated   | 2026-07-17                                                |
+| Next milestone | Phase 2c sidebar/rail; DRM spike (2b)                     |
+| Blockers       | None — tvOS TestFlight unblocked. Build 10 uploaded via `altool -t appletvos` (`eas submit` mis-delivers tvOS as iOS); CI now uses the `submit-tvos` altool job |
 
 ---
 
@@ -93,7 +93,8 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 - [x] `staging_tv` + `submit.staging`: store-signed builds → TestFlight internal + Play internal (`eas.json`, `build-host.yml`) (2026-07-15)
 - [x] Apple Developer Program enrollment + App Store Connect tvOS app + `ascAppId` `6791784830` in `eas.json` (2026-07-16)
 - [ ] Google Play Developer account + Play Console Android TV app + service account in EAS
-- [ ] tvOS: first TestFlight internal via **Build host app** (`staging_tv` + submit) — needs `eas credentials` for iOS
+- [x] tvOS: first TestFlight upload succeeded — build 10 IPA delivered via `altool -t appletvos` (2026-07-17); CI `submit-tvos` job (`macos-latest`) automates it with `ASC_API_KEY_*` secrets
+- [ ] tvOS: confirm build appears in TestFlight and installs on a physical Apple TV
 - [ ] Android TV: first Play internal via **Build host app** (`staging_tv` + submit)
 - [ ] (Optional) Firebase App Distribution for Android testers
 
@@ -217,6 +218,7 @@ Record confirmations/changes to `(default)` decisions here; link the ADR.
 | 2026-07-15 | CI + EAS build workflows: `ci.yml`, `build-host.yml` on `argus@*` tag; EAS default over self-hosted Gradle/Xcode | — | `EXPO_TOKEN` + `@argus-tv/argus` EAS project linked |
 | 2026-07-15 | Staging distribution: `staging_tv` build + `submit.staging` (TestFlight internal + Play internal); tags stay on `preview_tv` APK | — | Needs Apple + Google developer accounts |
 | 2026-07-16 | TV focus: native `react-native-tvos` primitives + thin host wrappers; reject JS spatial-nav for v1 | [0004](adr/0004-tv-ui-focus.md) | Phase 2a focus + layers + Zustand stubs |
+| 2026-07-17 | tvOS TestFlight delivery via `xcrun altool -t appletvos` (not `eas submit`, which mis-tags tvOS as iOS → ITMS-90508/90545/90713/90039); CI `submit-tvos` job on `macos-latest` + `ASC_API_KEY_*` secrets | — | Proven by re-uploading rejected build 10; Android still uses `eas submit` |
 
 ---
 

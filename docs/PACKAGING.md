@@ -113,12 +113,17 @@ flowchart LR
 - **Alternative:** ad-hoc dev-signed build installed via **Xcode** or **Apple Configurator** (needs each Apple TV's UDID registered; install is cabled/paired).
 - Simulator builds (tvOS Simulator) are fine for fast iteration and need no signing.
 
-> **tvOS submit gotcha — `eas submit` delivers tvOS as iOS.** App Store Connect processing rejects the Apple TV binary with `ITMS-90508` (`DTPlatformName` invalid), `90545` (profile "not compatible with iOS apps"), `90713`/`90039` (iOS icon keys) — all symptoms of Apple validating a tvOS binary **as iOS**. The binary is correct (`DTPlatformName=appletvos`, `UIDeviceFamily=[3]`, `CFBundleSupportedPlatforms=[AppleTVOS]`, tvOS App Store profile), so the binary is **not** the cause — verified by stripping `LSRequiresIPhoneOS` and still getting identical errors on build 10. The cause is the **delivery**: `eas submit -p ios` tags the upload as the iOS platform (there is no tvOS platform in `eas submit`; it's a known tooling gap — Expo [#29604](https://github.com/expo/expo/issues/29604), and the delivery `app_platform=ios` problem from [fastlane/pilot #92](https://github.com/fastlane/pilot/issues/92)).
+> **tvOS submit gotcha — `eas submit` delivers tvOS as iOS (do not use it for tvOS).** App Store Connect processing rejects the Apple TV binary with `ITMS-90508` (`DTPlatformName` invalid), `90545` (profile "not compatible with iOS apps"), `90713`/`90039` (iOS icon keys) — all symptoms of Apple validating a tvOS binary **as iOS**. The binary is correct (`DTPlatformName=appletvos`, `UIDeviceFamily=[3]`, `CFBundleSupportedPlatforms=[AppleTVOS]`, tvOS App Store profile), so the binary is **not** the cause — verified by stripping `LSRequiresIPhoneOS` and still getting identical errors on build 10. The cause is the **delivery**: `eas submit -p ios` tags the upload as the iOS platform (there is no tvOS platform in `eas submit`; it's a known tooling gap — Expo [#29604](https://github.com/expo/expo/issues/29604), and the delivery `app_platform=ios` problem from [fastlane/pilot #92](https://github.com/fastlane/pilot/issues/92)).
 >
-> **Working upload path for tvOS:** build the IPA with EAS, then upload it yourself declaring the tvOS platform (do **not** use `eas submit` for tvOS):
+> **Fix (proven & automated):** upload the EAS-built IPA with **`xcrun altool --upload-app -t appletvos`** on macOS — the `-t appletvos` flag makes Apple validate as tvOS. This was confirmed by re-uploading the *same* rejected build 10 IPA: `VERIFY SUCCEEDED` then `UPLOAD SUCCEEDED with no errors`. CI does this automatically in the **`submit-tvos`** job (`macos-latest`) of `build-host.yml`; `eas submit` is used for **Android only**.
 >
-> - **Transporter.app** (Mac App Store): download the IPA from the EAS build page, drag it in, upload. Transporter auto-detects `appletvos` from the bundle. Easiest; signs in with your Apple ID.
-> - **`xcrun altool`** (needs Xcode on macOS): `xcrun altool --upload-app -f app.ipa -t appletvos --apiKey <KEY_ID> --apiIssuer <ISSUER_ID>` — the `-t appletvos` flag is the fix. (Reference: [Expo tvOS → TestFlight walkthrough](https://dev.to/desertskylabs/how-i-got-an-expo-tvos-app-to-testflight-from-windows-without-buying-a-mac-first-358p).)
+> ```bash
+> # Manual equivalent (macOS + Xcode), .p8 in ~/private_keys/AuthKey_<KEY_ID>.p8:
+> xcrun altool --upload-app -f argus-tvos.ipa -t appletvos \
+>   --apiKey <KEY_ID> --apiIssuer <ISSUER_ID>
+> ```
+>
+> Alternative for one-off manual uploads: **Transporter.app** (Mac App Store) auto-detects `appletvos` from the bundle. Reference: [Expo tvOS → TestFlight walkthrough](https://dev.to/desertskylabs/how-i-got-an-expo-tvos-app-to-testflight-from-windows-without-buying-a-mac-first-358p).
 >
 > Also required once: the ASC app must include the **tvOS** platform (App Store Connect → app → **Add Platform → tvOS**), and the EAS provisioning profile must be `tvOS App Store` type (EAS creates this automatically when `EXPO_TV=1`).
 
@@ -155,11 +160,11 @@ flowchart LR
 | **Android TV** | Google Play **internal testing** — invite emails in Play Console | Testers you add |
 | **Apple TV** | **TestFlight internal** — App Store Connect users on your team | Up to ~100 internal testers |
 
-**CI:** **Actions → Build host app** → profile `staging_tv` → enable **Submit to store internal/production tracks**. That runs `eas submit --profile staging` (TestFlight + Play internal).
+**CI:** **Actions → Build host app** → profile `staging_tv` → enable **Submit to store internal/production tracks**. Android goes to **Play internal** via `eas submit --profile staging`; tvOS goes to **TestFlight** via the `submit-tvos` job (`xcrun altool -t appletvos` on `macos-latest`) — see the tvOS submit gotcha above.
 
 **One-time setup (staging):**
 
-1. **Apple** — [Apple Developer Program](https://developer.apple.com/programs/) enrolled; App Store Connect app for `net.oxoc.argus` (`ascAppId` `6791784830` in `eas.json`). Run `eas credentials` for iOS **build** signing (distribution cert + profile). For CI / `--non-interactive` submit, also set up an **App Store Connect API Key** once locally (see below) — without it, Actions fails with `App Store Connect API Keys cannot be set up in --non-interactive mode`.
+1. **Apple** — [Apple Developer Program](https://developer.apple.com/programs/) enrolled; App Store Connect app for `net.oxoc.argus` (`ascAppId` `6791784830` in `eas.json`) with the **tvOS platform added**. Run `eas credentials` for iOS **build** signing (distribution cert + `tvOS App Store` profile). Create an **App Store Connect API Key** (Users and Access → Integrations → App Store Connect API; role App Manager) and add three repo secrets — `ASC_API_KEY_ID`, `ASC_API_ISSUER_ID`, `ASC_API_KEY_P8` (the `.p8` contents) — used by the `submit-tvos` altool job.
 2. **Google** — [Play Console](https://play.google.com/console) developer account, create the Android TV app, upload a Google **service account key** via `eas credentials` (Android → Google Service Account).
 3. **First `staging_tv` build** — EAS will prompt for (or generate) an Android **upload keystore** on the first store build; credentials are stored on Expo.
 4. **Invite testers** — Play Console → Internal testing → testers; App Store Connect → TestFlight → Internal Testing group.
@@ -176,14 +181,14 @@ flowchart TB
   Tag[Tag / manual dispatch] --> Build[Build job]
   Build -->|EAS or Gradle/Xcode| Artifacts
   Artifacts --> Store1[Upload APK artifact / Firebase]
-  Artifacts --> Store2[tvOS to TestFlight via eas submit]
+  Artifacts --> Store2[tvOS to TestFlight via altool -t appletvos]
 ```
 
 ### Workflows
 
 1. **`ci.yml`** — on PR + push to `main`: `npm ci`, typecheck, lint.
 2. **`release.yml`** — on push to `main`: Changesets version PR or `argus@<version>` git tag ([ADR 0003](adr/0003-app-versioning.md)).
-3. **`build-host.yml`** — on `argus@*` tag or manual dispatch: EAS `preview_tv` / `staging_tv` / `production_tv` for Android TV + tvOS → workflow artifacts + GitHub Release; optional store submit on dispatch (`staging_tv` → TestFlight internal + Play internal).
+3. **`build-host.yml`** — on `argus@*` tag or manual dispatch: EAS `preview_tv` / `staging_tv` / `production_tv` for Android TV + tvOS → workflow artifacts + GitHub Release; optional store submit on dispatch (Android via `eas submit`; tvOS via the `submit-tvos` altool job → TestFlight internal).
 
 **Lockfile note:** `@emnapi/core` / `@emnapi/runtime` are pinned in `overrides` and listed as `devDependencies` so `npm ci` stays consistent on macOS (local + EAS) and Linux CI. A plain `npm install` on Darwin can otherwise drop those optional transitive entries while leaving the overrides in place, which makes EAS fail with `Missing: @emnapi/* from lock file`. After changing deps, run `npm ci` (not only `npm install`) before pushing.
 
@@ -222,10 +227,10 @@ Before the first EAS build from CI:
    Confirms TV native project + credentials before relying on CI.
 
 5. **tvOS / TestFlight** (when you need a physical Apple TV):
-   - Apple Developer Program + App Store Connect app record
-   - Apple credentials stored in EAS (`eas credentials`)
-   - Add `ascAppId` to `eas.json` → `submit.staging.ios`
-   - Run **Build host app** with profile **`staging_tv`** + **Submit to store tracks**, or `eas submit --profile staging` locally
+   - Apple Developer Program + App Store Connect app record **with the tvOS platform added**
+   - Apple **build** credentials stored in EAS (`eas credentials`) — distribution cert + `tvOS App Store` profile
+   - ASC API Key secrets in the repo (`ASC_API_KEY_ID`, `ASC_API_ISSUER_ID`, `ASC_API_KEY_P8`) for the altool submit job
+   - Run **Build host app** with profile **`staging_tv`** + **Submit to store tracks** (the `submit-tvos` job uploads via `altool -t appletvos`). Do **not** use `eas submit` for tvOS — see the gotcha above.
 
 6. **Android TV / Play internal** (store install without public release):
    - Google Play Developer account + Play Console app
@@ -238,8 +243,9 @@ Before the first EAS build from CI:
 |--------|----------|
 | `EXPO_TOKEN` | Non-interactive EAS build/submit |
 | EAS-managed credentials (dashboard / `eas credentials`) | Apple signing, Android upload keystore, Google Play service account |
-| `ascAppId` in `eas.json` `submit.*.ios` | Targets the ASC app on submit (`6791784830`) |
-| ASC API Key on the EAS project | Required for `eas submit --non-interactive` in CI |
+| `ascAppId` in `eas.json` `submit.*.ios` | Targets the ASC app on Android submit config (`6791784830`) |
+| ASC API Key on the EAS project | Required for `eas submit --non-interactive` (Android) in CI |
+| `ASC_API_KEY_ID`, `ASC_API_ISSUER_ID`, `ASC_API_KEY_P8` | tvOS TestFlight upload via `altool -t appletvos` in the `submit-tvos` job |
 | `FIREBASE_APP_ID`, `FIREBASE_TOKEN` (optional) | Firebase App Distribution for Android testers |
 
 Store all in GitHub Actions secrets; never commit them (matches the no-secrets-in-git rule).
@@ -358,7 +364,7 @@ For a solo/private setup optimizing for speed:
 
 - [x] **EAS vs self-hosted** builds (default: EAS; revisit on cost/quota).
 - [x] **Apple Developer Program** enrollment + App Store Connect app (`ascAppId` wired).
-- [x] **tvOS staging:** TestFlight internal via `staging_tv` + `submit.staging` (default).
+- [x] **tvOS staging:** TestFlight internal via `staging_tv` + the `submit-tvos` altool job (`-t appletvos`); `eas submit` is not used for tvOS.
 - [x] **Android fast dev:** raw APK/`adb` via `preview_tv` (default).
 - [x] **Android staging:** AAB + Play internal track via `staging_tv` + `submit.staging`.
 - [ ] **Optional:** Firebase App Distribution as an alternative to Play internal for Android.

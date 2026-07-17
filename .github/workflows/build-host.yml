@@ -152,19 +152,61 @@ jobs:
           path: ${{ steps.meta.outputs.artifact }}
           retention-days: 30
 
-      - name: Submit to store tracks
+      # Android submits via EAS. tvOS is handled by the `submit-tvos` job below,
+      # because `eas submit -p ios` delivers the Apple TV build as iOS and Apple
+      # rejects it (ITMS-90508/90545/90713/90039). See docs/PACKAGING.md.
+      - name: Submit Android to Play track
         if: >-
           steps.skip.outputs.skip != 'true' &&
+          matrix.platform == 'android' &&
           github.event_name == 'workflow_dispatch' &&
           inputs.submit_to_stores &&
           steps.meta.outputs.submit_profile != ''
         run: |
           eas submit \
-            --platform ${{ matrix.platform }} \
+            --platform android \
             --profile "${{ steps.meta.outputs.submit_profile }}" \
             --latest \
             --non-interactive \
             --wait
+
+  # tvOS delivery must declare the appletvos platform, which `eas submit` cannot
+  # do. Upload the IPA artifact from the build job with `xcrun altool
+  # -t appletvos` on a macOS runner instead.
+  submit-tvos:
+    name: Submit tvOS (altool)
+    needs: build
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.submit_to_stores &&
+      (inputs.platform == 'all' || inputs.platform == 'ios') &&
+      (inputs.profile == 'staging_tv' || inputs.profile == 'production_tv')
+    runs-on: macos-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: argus-tvos.ipa
+
+      - name: Write App Store Connect API key
+        env:
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+        run: |
+          mkdir -p ~/private_keys
+          printf '%s' "$ASC_API_KEY_P8" > "$HOME/private_keys/AuthKey_${ASC_API_KEY_ID}.p8"
+
+      - name: Upload to App Store Connect (tvOS)
+        env:
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+        run: |
+          set -o pipefail
+          xcrun altool --upload-app \
+            -f argus-tvos.ipa \
+            -t appletvos \
+            --apiKey "$ASC_API_KEY_ID" \
+            --apiIssuer "$ASC_API_ISSUER_ID" 2>&1 | tee altool-upload.log
+          grep -q "No errors uploading" altool-upload.log
 
   release:
     name: GitHub Release assets
