@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { usePluginsStore } from '@/application/stores/plugins-store';
 import { useSettingsStore } from '@/application/stores/settings-store';
 import { Focusable } from '@/platform/focus';
+import { BrandLogo } from '@/presentation/components/brand-logo';
 import { ThemedText } from '@/presentation/components/themed-text';
 import { Screen } from '@/presentation/components/tv';
 import { useScreenDimensions } from '@/presentation/hooks/use-screen-dimensions';
@@ -103,10 +104,10 @@ export default function SettingsScreen() {
               paddingHorizontal: spacing.four,
               borderRadius: spacing.two,
               backgroundColor: theme.backgroundElement,
-              gap: spacing.one,
+              gap: spacing.two,
             }}
           >
-            <ThemedText type="smallBold">Argus</ThemedText>
+            <BrandLogo size={32} showWordmark />
             <ThemedText type="small" themeColor="textSecondary">
               Version {appVersion}
             </ThemedText>

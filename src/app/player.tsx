@@ -93,6 +93,7 @@ function ActivePlayer({ stream, title, mediaKey }: ActivePlayerProps) {
   const setMedia = usePlayerStore((s) => s.setMedia);
   const setStatus = usePlayerStore((s) => s.setStatus);
   const setError = usePlayerStore((s) => s.setError);
+  const error = usePlayerStore((s) => s.error);
   const reset = usePlayerStore((s) => s.reset);
 
   const player = useVideoPlayer(toVideoSource(stream), (instance) => {
@@ -178,6 +179,11 @@ function ActivePlayer({ stream, title, mediaKey }: ActivePlayerProps) {
         {stream.drm ? (
           <ThemedText type="small" themeColor="textSecondary">
             DRM: {stream.drm.scheme}
+          </ThemedText>
+        ) : null}
+        {error ? (
+          <ThemedText type="small" style={{ color: '#ff8a80' }}>
+            {error}
           </ThemedText>
         ) : null}
         <View style={[styles.actions, { gap: spacing.three }]}>

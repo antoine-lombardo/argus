@@ -17,7 +17,8 @@
     "typecheck": "tsc --noEmit",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "changeset tag"
+    "release": "changeset tag",
+    "icons:generate": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
     "@argus-tv/plugin-sdk": "^0.1.1",
@@ -47,6 +48,7 @@
     "react-native-reanimated": "4.5.0",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",
+    "react-native-svg": "15.15.4",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.10.0",
     "zustand": "^5.0.14"
@@ -56,9 +58,11 @@
     "@emnapi/core": "1.11.2",
     "@emnapi/runtime": "1.11.2",
     "@react-native-tvos/config-tv": "^0.1.6",
+    "@resvg/resvg-js": "^2.6.2",
     "@types/react": "~19.2.2",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~57.0.0",
+    "sharp": "^0.35.3",
     "typescript": "~6.0.3"
   },
   "overrides": {

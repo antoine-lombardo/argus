@@ -1,7 +1,12 @@
 import type { DrmScheme, StreamDescriptor, StreamType } from '@argus-tv/plugin-sdk';
-import type { VideoSource } from 'expo-video';
+import type { DRMOptions, VideoSource } from 'expo-video';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
+
+import {
+  AXINOM_FPS_CERT_BASE64,
+  AXINOM_FPS_CERT_URL,
+} from '@/platform/player/axinom-fps-cert';
 
 function contentTypeFor(
   type: StreamType,
@@ -65,12 +70,21 @@ export function toVideoSource(stream: StreamDescriptor): VideoSource {
   }
 
   if (stream.drm) {
-    source.drm = {
+    const drm: DRMOptions = {
       type: stream.drm.scheme,
       licenseServer: stream.drm.licenseUrl,
       headers: stream.drm.headers,
-      certificateUrl: stream.drm.certificateUrl,
     };
+
+    // Spike: embed Axinom eval cert so play does not depend on fetching the .cer.
+    // expo-video ignores certificateUrl when base64CertificateData is set.
+    if (stream.drm.certificateUrl === AXINOM_FPS_CERT_URL) {
+      drm.base64CertificateData = AXINOM_FPS_CERT_BASE64;
+    } else if (stream.drm.certificateUrl) {
+      drm.certificateUrl = stream.drm.certificateUrl;
+    }
+
+    source.drm = drm;
   }
 
   return source;

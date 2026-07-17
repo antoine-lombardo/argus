@@ -193,7 +193,7 @@ flowchart TB
 
 **Lockfile note:** `@emnapi/core` / `@emnapi/runtime` are pinned in `overrides` and listed as `devDependencies` so `npm ci` stays consistent on macOS (local + EAS) and Linux CI. A plain `npm install` on Darwin can otherwise drop those optional transitive entries while leaving the overrides in place, which makes EAS fail with `Missing: @emnapi/* from lock file`. After changing deps, run `npm ci` (not only `npm install`) before pushing.
 
-**tvOS icons:** `appleTVImages` in `app.json` feed an Xcode image stack. The **Back** layer must be a fully opaque bitmap (no alpha). Transparent Expo-template squircles fail Xcode with “last image stack layer … must be a fully opaque bitmap”. Keep `assets/tv_icons/*.png` as opaque RGB (full-bleed; Apple applies the TV mask).
+**App / TV icons:** vector source is `assets/brand/icon-mark.svg` (also rendered in-app via `BrandMarkSvg` / `react-native-svg`). Warm stone vertical gradient (`#F3EEE6` → `#E8E2D8` → `#D4C9B8`) + ink mark `#1C1E24` — set in `scripts/generate-icons.mjs`. Regenerate with `npm run icons:generate`. Outputs: `assets/brand/` masters, `assets/images/` (app icon, adaptive, splash, favicon), `assets/tv_icons/` (opaque RGB). Splash / adaptive solid fallback stays `#E8E2D8`. `appleTVImages` in `app.json` feed an Xcode image stack — the **Back** layer must be fully opaque (no alpha); Apple applies the TV mask.
 
 ```mermaid
 flowchart LR

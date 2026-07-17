@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Focusable, FocusGuide } from '@/platform/focus';
+import { BrandLogo } from '@/presentation/components/brand-logo';
 import { ThemedText } from '@/presentation/components/themed-text';
 import { useScreenDimensions } from '@/presentation/hooks/use-screen-dimensions';
 import { useTheme } from '@/presentation/hooks/use-theme';
@@ -14,15 +15,14 @@ type SidebarProps = {
 export function Sidebar({ children }: SidebarProps) {
   const theme = useTheme();
   const styles = useStyles();
+  const { scale } = useScreenDimensions();
 
   return (
     <FocusGuide
       autoFocus
       style={[styles.rail, { backgroundColor: theme.backgroundElement }]}
     >
-      <ThemedText type="subtitle" style={styles.brand}>
-        Argus
-      </ThemedText>
+      <BrandLogo size={Math.round(26 * scale)} style={styles.brand} />
       <View style={styles.items}>{children}</View>
     </FocusGuide>
   );
