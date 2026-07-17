@@ -1,4 +1,4 @@
-import { Spacing } from '@/constants/theme';
+import { Spacing } from '@/presentation/constants/theme';
 import { useWindowDimensions } from 'react-native';
 
 export type ScreenDimensionsResult = {

@@ -105,9 +105,9 @@ Install the recommended [**Expo Tools**](https://marketplace.visualstudio.com/it
 |--------|-----|
 | PR checks | `ci.yml` — typecheck + lint |
 | Version bump | `npm run changeset` → merge **chore: version packages** PR → `argus@<version>` tag |
-| Build host app | Tag push or **Actions → Build host app → Run workflow** (android / ios / both) |
+| Build host app | Tag push (`preview_tv` APK) or **Actions → Build host app** — profiles: `preview_tv` / `staging_tv` / `production_tv`; enable **Submit to store tracks** for staging/production store release |
 
-One-time: `eas init` + add **`EXPO_TOKEN`** repo secret — see [docs/PACKAGING.md](docs/PACKAGING.md#one-time-setup-host-app).
+One-time: `eas init` + **`EXPO_TOKEN`** — see [docs/PACKAGING.md](docs/PACKAGING.md#one-time-setup-host-app). Staging also needs Apple + Google developer accounts — [staging setup](docs/PACKAGING.md#staging-store-tracks-developers-only).
 
 ## Development
 

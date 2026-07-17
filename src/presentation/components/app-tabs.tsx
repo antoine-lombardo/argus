@@ -3,7 +3,7 @@ import React from 'react';
 import { Platform, useColorScheme } from 'react-native';
 import WebTabs from './app-tabs.web';
 
-import { Colors } from '@/constants/theme';
+import { Colors } from '@/presentation/constants/theme';
 
 export default function AppTabs() {
   const scheme = useColorScheme();

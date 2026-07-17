@@ -59,12 +59,12 @@ Provider work happens only where the plugin can use legitimate access (official 
 
 ## Suggested tooling (not finalized)
 
-| Area | Direction |
-|------|-----------|
-| Client | React Native (TypeScript expected) |
+| Area                   | Direction                                                                    |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| Client                 | React Native (TypeScript expected)                                           |
 | Monorepo vs multi-repo | Decided: multi-repo from day one ([ADR 0002](adr/0002-multi-repo-layout.md)) |
-| CI | Once code exists: lint, typecheck, tests on PRs |
-| Docs | Markdown in-repo; ADRs for locking decisions |
+| CI                     | Once code exists: lint, typecheck, tests on PRs                              |
+| Docs                   | Markdown in-repo; ADRs for locking decisions                                 |
 
 Exact packages, state management, and navigation libraries will be chosen at scaffold time—not before.
 
@@ -72,10 +72,10 @@ Exact packages, state management, and navigation libraries will be chosen at sca
 
 Typical loop (subject to change):
 
-1. Read AGENT / vision docs and open ADRs  
-2. Propose or update an ADR if the change is architectural  
-3. Implement against the plugin contract  
-4. Add or update tests for contract + host behavior  
-5. PR with a short note on impact to plugins or repos  
+1. Read AGENT / vision docs and open ADRs
+2. Propose or update an ADR if the change is architectural
+3. Implement against the plugin contract
+4. Add or update tests for contract + host behavior
+5. PR with a short note on impact to plugins or repos
 
 Until code lands, PRs can be documentation-only.

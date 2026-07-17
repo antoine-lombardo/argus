@@ -41,7 +41,7 @@ Diagrams use [Mermaid](https://mermaid.js.org/). Anything marked **(default)** w
 | Cache | Plugins own their catalog / metadata cache |
 | TV navigation | Sidebar / rail (Netflix-style) |
 | RN toolchain | Expo + dev client |
-| TV UI | Build on an existing RN TV component/focus library |
+| TV UI / focus | Native `react-native-tvos` focus + thin host wrappers ([ADR 0004](adr/0004-tv-ui-focus.md)) |
 | State management | Zustand |
 | Team | Solo / small — optimize for speed and low ops overhead |
 
@@ -134,6 +134,16 @@ flowchart LR
 ```
 
 ### Layers
+
+Host source layout (Phase 2a):
+
+| Layer | Path |
+|-------|------|
+| Presentation | `src/presentation/` (components, hooks, constants) |
+| Application | `src/application/stores/` (Zustand) |
+| Domain | `src/domain/` (host domain helpers; media DTOs remain in `@argus-tv/plugin-sdk`) |
+| Platform | `src/platform/` (e.g. `focus/` — [ADR 0004](adr/0004-tv-ui-focus.md)) |
+| Routes | `src/app/` (Expo Router; thin imports into presentation) |
 
 - **Presentation** — screens, TV components, and focus management. No provider or plugin knowledge; renders domain DTOs.
 - **Application / state** — Zustand stores orchestrating use-cases (run a search, install a plugin, resume playback). Thin; delegates to domain + platform.
@@ -479,7 +489,7 @@ flowchart TB
 ```
 
 - **Shared code (default):** ~95% TypeScript; native only where unavoidable — the DRM player and secure storage.
-- **Focus / spatial navigation:** provided by the chosen RN TV library, wrapped in a thin host focus service.
+- **Focus / spatial navigation:** native `react-native-tvos` primitives (`TVFocusGuideView`, Pressable focus), wrapped in `src/platform/focus/` and presentation TV components ([ADR 0004](adr/0004-tv-ui-focus.md)).
 - **Input:** D-pad first; gamepad/mouse on Android TV is a nice-to-have.
 - **Platform integrations** (top shelf, Leanback recommendations): deferred past v1.
 - **Expo:** `expo-dev-client` with a custom native module for the DRM player is the assumed path.
@@ -540,6 +550,6 @@ Decisions above marked **(default)** are provisional. These warrant an ADR under
 5. **Media aggregation** — cross-provider dedup/matching strategy and identifiers.
 6. **Continue-watching reconciliation** — precise merge semantics across host and plugins.
 
-**Accepted ADRs:** [0001](adr/0001-plugin-contract-ts-interfaces.md) (plugin contract & runtime), [0002](adr/0002-multi-repo-layout.md) (multi-repo layout).
+**Accepted ADRs:** [0001](adr/0001-plugin-contract-ts-interfaces.md) (plugin contract & runtime), [0002](adr/0002-multi-repo-layout.md) (multi-repo layout), [0003](adr/0003-app-versioning.md) (host versioning), [0004](adr/0004-tv-ui-focus.md) (TV focus).
 
 Each resolved ADR should update the relevant section here and the [implementation plan](IMPLEMENTATION-PLAN.md).

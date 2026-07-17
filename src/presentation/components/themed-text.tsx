@@ -1,8 +1,8 @@
 import { Platform, StyleSheet, Text, type TextProps } from 'react-native';
 
-import { Fonts, ThemeColor } from '@/constants/theme';
-import { useScreenDimensions } from '@/hooks/use-screen-dimensions';
-import { useTheme } from '@/hooks/use-theme';
+import { Fonts, ThemeColor } from '@/presentation/constants/theme';
+import { useScreenDimensions } from '@/presentation/hooks/use-screen-dimensions';
+import { useTheme } from '@/presentation/hooks/use-theme';
 
 export type ThemedTextProps = TextProps & {
   type?:

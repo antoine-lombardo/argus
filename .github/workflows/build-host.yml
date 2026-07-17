@@ -22,9 +22,10 @@ on:
         type: choice
         options:
           - preview_tv
+          - staging_tv
           - production_tv
-      submit_testflight:
-        description: Submit tvOS build to TestFlight (ios only)
+      submit_to_stores:
+        description: Submit to store internal/production tracks (staging_tv → TestFlight internal + Play internal; production_tv → production)
         required: true
         default: false
         type: boolean
@@ -43,10 +44,8 @@ jobs:
         include:
           - platform: android
             label: Android TV
-            artifact: argus-android-tv.apk
           - platform: ios
             label: tvOS
-            artifact: argus-tvos.ipa
     steps:
       - name: Skip matrix row
         id: skip
@@ -58,6 +57,33 @@ jobs:
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Resolve build profile and artifact name
+        if: steps.skip.outputs.skip != 'true'
+        id: meta
+        env:
+          DISPATCH_PROFILE: ${{ github.event_name == 'workflow_dispatch' && inputs.profile || 'preview_tv' }}
+        run: |
+          PROFILE="$DISPATCH_PROFILE"
+          PLATFORM="${{ matrix.platform }}"
+
+          if [[ "$PLATFORM" == "android" ]]; then
+            if [[ "$PROFILE" == "staging_tv" || "$PROFILE" == "production_tv" ]]; then
+              echo "artifact=argus-android-tv.aab" >> "$GITHUB_OUTPUT"
+            else
+              echo "artifact=argus-android-tv.apk" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "artifact=argus-tvos.ipa" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "profile=$PROFILE" >> "$GITHUB_OUTPUT"
+
+          case "$PROFILE" in
+            staging_tv) echo "submit_profile=staging" >> "$GITHUB_OUTPUT" ;;
+            production_tv) echo "submit_profile=production" >> "$GITHUB_OUTPUT" ;;
+            *) echo "submit_profile=" >> "$GITHUB_OUTPUT" ;;
+          esac
 
       - uses: actions/checkout@v7
         if: steps.skip.outputs.skip != 'true'
@@ -82,13 +108,11 @@ jobs:
 
       - name: EAS build
         if: steps.skip.outputs.skip != 'true'
-        env:
-          EAS_BUILD_PROFILE: ${{ github.event_name == 'workflow_dispatch' && inputs.profile || 'preview_tv' }}
         run: |
           set -o pipefail
           eas build \
             --platform ${{ matrix.platform }} \
-            --profile "$EAS_BUILD_PROFILE" \
+            --profile "${{ steps.meta.outputs.profile }}" \
             --non-interactive \
             --wait \
             --json | tee "build-${{ matrix.platform }}.json"
@@ -118,24 +142,26 @@ jobs:
 
       - name: Download build artifact
         if: steps.skip.outputs.skip != 'true'
-        run: curl -fSL --retry 3 --retry-delay 5 -o "${{ matrix.artifact }}" "${{ steps.resolve.outputs.artifact_url }}"
+        run: curl -fSL --retry 3 --retry-delay 5 -o "${{ steps.meta.outputs.artifact }}" "${{ steps.resolve.outputs.artifact_url }}"
 
       - name: Upload workflow artifact
         if: steps.skip.outputs.skip != 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact }}
-          path: ${{ matrix.artifact }}
+          name: ${{ steps.meta.outputs.artifact }}
+          path: ${{ steps.meta.outputs.artifact }}
           retention-days: 30
 
-      - name: Submit to TestFlight
-        if: steps.skip.outputs.skip != 'true' && matrix.platform == 'ios' && github.event_name == 'workflow_dispatch' && inputs.submit_testflight
-        env:
-          EAS_BUILD_PROFILE: ${{ inputs.profile }}
+      - name: Submit to store tracks
+        if: >-
+          steps.skip.outputs.skip != 'true' &&
+          github.event_name == 'workflow_dispatch' &&
+          inputs.submit_to_stores &&
+          steps.meta.outputs.submit_profile != ''
         run: |
           eas submit \
-            --platform ios \
-            --profile "$EAS_BUILD_PROFILE" \
+            --platform ${{ matrix.platform }} \
+            --profile "${{ steps.meta.outputs.submit_profile }}" \
             --latest \
             --non-interactive \
             --wait
@@ -158,6 +184,7 @@ jobs:
           tag_name: ${{ github.ref_name }}
           files: |
             argus-android-tv.apk
+            argus-android-tv.aab
             argus-tvos.ipa
           fail_on_unmatched_files: false
           make_latest: true

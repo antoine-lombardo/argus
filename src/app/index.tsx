@@ -1,12 +1,12 @@
 import { Platform, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { useScreenDimensions } from '@/hooks/use-screen-dimensions';
+import { AnimatedIcon } from '@/presentation/components/animated-icon';
+import { HintRow } from '@/presentation/components/hint-row';
+import { ThemedText } from '@/presentation/components/themed-text';
+import { ThemedView } from '@/presentation/components/themed-view';
+import { WebBadge } from '@/presentation/components/web-badge';
+import { useScreenDimensions } from '@/presentation/hooks/use-screen-dimensions';
 
 export default function HomeScreen() {
   const styles = useHomeStyles();

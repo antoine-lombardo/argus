@@ -56,24 +56,27 @@ flowchart TB
 - No Expo quota; more maintenance (certs, provisioning, Xcode versions on runners).
 - Good fallback for Android APKs even if we use EAS for tvOS.
 
-### Build profiles (`eas.json`, sketch)
+### Build profiles (`eas.json`)
+
+| Profile | Use | Android artifact | Store submit |
+|---------|-----|------------------|--------------|
+| `preview_tv` | Fast dev / CI tags | APK (`adb install`) | No |
+| `staging_tv` | Developer-only store testing | AAB | TestFlight internal + Play **internal** |
+| `production_tv` | Public release (later) | AAB | TestFlight + Play **production** |
+
+`staging_tv` extends `production_tv` with `channel: "staging"` (for future EAS Update). Both store profiles use `distribution: "store"` and a signed upload keystore (EAS-managed by default).
+
+Submit profiles in `eas.json`:
 
 ```jsonc
-{
-  "build": {
-    "development": {            // dev client, for day-to-day device testing
-      "developmentClient": true,
-      "distribution": "internal",
-      "android": { "buildType": "apk" }
-    },
-    "preview": {                // release-like, internal testers
-      "distribution": "internal",
-      "android": { "buildType": "apk" },
-      "ios": { "simulator": false }
-    },
-    "production": {             // future: store/TestFlight/Play tracks
-      "distribution": "store"
-    }
+"submit": {
+  "staging": {
+    "android": { "track": "internal", "releaseStatus": "completed" },
+    "ios": { "ascAppId": "6791784830" }
+  },
+  "production": {
+    "android": { "track": "production" },
+    "ios": { "ascAppId": "6791784830" }
   }
 }
 ```
@@ -112,8 +115,47 @@ flowchart LR
 
 ### Reality check for "private developers only"
 
-- Android: fully self-serve, no accounts, no cost.
-- tvOS: you need the paid Apple account and App Store Connect app record even for private TestFlight. There is no true "sideload an IPA on Apple TV" path comparable to Android. Plan around TestFlight from the start.
+- **Android (preview):** fully self-serve via APK/`adb`, no accounts, no cost.
+- **Android (staging):** Google Play Developer account ($25 one-time) + Play Console app + internal testing track; testers install from Play Store on the TV.
+- **tvOS:** Apple Developer Program ($99/yr) + App Store Connect app record. **TestFlight internal** is the default staging path — no public App Store listing.
+
+---
+
+## Staging (store tracks, developers only)
+
+Store-signed builds for invited testers only — the “real” install flow without going public.
+
+```mermaid
+flowchart LR
+  subgraph fast [Fast dev]
+    P[preview_tv] --> APK[APK]
+    APK --> adb[adb install]
+  end
+  subgraph staging [Staging]
+    S[staging_tv] --> AAB[AAB + IPA]
+    AAB --> Play[Play internal track]
+    AAB --> TF[TestFlight internal]
+  end
+  subgraph prod [Production later]
+    R[production_tv] --> Stores[Public stores]
+  end
+```
+
+| Platform | Staging install | Who |
+|----------|-----------------|-----|
+| **Android TV** | Google Play **internal testing** — invite emails in Play Console | Testers you add |
+| **Apple TV** | **TestFlight internal** — App Store Connect users on your team | Up to ~100 internal testers |
+
+**CI:** **Actions → Build host app** → profile `staging_tv` → enable **Submit to store internal/production tracks**. That runs `eas submit --profile staging` (TestFlight + Play internal).
+
+**One-time setup (staging):**
+
+1. **Apple** — [Apple Developer Program](https://developer.apple.com/programs/) enrolled; App Store Connect app for `net.oxoc.argus` (`ascAppId` `6791784830` in `eas.json`). Run `eas credentials` for iOS signing; optional ASC API key for CI submit.
+2. **Google** — [Play Console](https://play.google.com/console) developer account, create the Android TV app, upload a Google **service account key** via `eas credentials` (Android → Google Service Account).
+3. **First `staging_tv` build** — EAS will prompt for (or generate) an Android **upload keystore** on the first store build; credentials are stored on Expo.
+4. **Invite testers** — Play Console → Internal testing → testers; App Store Connect → TestFlight → Internal Testing group.
+
+Tag pushes still default to `preview_tv` (APK artifacts). Use manual dispatch for staging store submits.
 
 ---
 
@@ -132,7 +174,11 @@ flowchart TB
 
 1. **`ci.yml`** — on PR + push to `main`: `npm ci`, typecheck, lint.
 2. **`release.yml`** — on push to `main`: Changesets version PR or `argus@<version>` git tag ([ADR 0003](adr/0003-app-versioning.md)).
-3. **`build-host.yml`** — on `argus@*` tag or manual dispatch: EAS `preview_tv` / `production_tv` for Android TV + tvOS → workflow artifacts + single GitHub Release; optional TestFlight submit (dispatch, ios only).
+3. **`build-host.yml`** — on `argus@*` tag or manual dispatch: EAS `preview_tv` / `staging_tv` / `production_tv` for Android TV + tvOS → workflow artifacts + GitHub Release; optional store submit on dispatch (`staging_tv` → TestFlight internal + Play internal).
+
+**Lockfile note:** `@emnapi/core` / `@emnapi/runtime` are pinned in `overrides` and listed as `devDependencies` so `npm ci` stays consistent on macOS (local + EAS) and Linux CI. A plain `npm install` on Darwin can otherwise drop those optional transitive entries while leaving the overrides in place, which makes EAS fail with `Missing: @emnapi/* from lock file`. After changing deps, run `npm ci` (not only `npm install`) before pushing.
+
+**tvOS icons:** `appleTVImages` in `app.json` feed an Xcode image stack. The **Back** layer must be a fully opaque bitmap (no alpha). Transparent Expo-template squircles fail Xcode with “last image stack layer … must be a fully opaque bitmap”. Keep `assets/tv_icons/*.png` as opaque RGB (full-bleed; Apple applies the TV mask).
 
 ```mermaid
 flowchart LR
@@ -169,15 +215,21 @@ Before the first EAS build from CI:
 5. **tvOS / TestFlight** (when you need a physical Apple TV):
    - Apple Developer Program + App Store Connect app record
    - Apple credentials stored in EAS (`eas credentials`)
-   - Run **Build host app** workflow with **ios** + **Submit to TestFlight**, or `eas submit` locally
+   - Add `ascAppId` to `eas.json` → `submit.staging.ios`
+   - Run **Build host app** with profile **`staging_tv`** + **Submit to store tracks**, or `eas submit --profile staging` locally
+
+6. **Android TV / Play internal** (store install without public release):
+   - Google Play Developer account + Play Console app
+   - Google service account key in EAS (`eas credentials`)
+   - Run **Build host app** with profile **`staging_tv`** + **Submit to store tracks**
 
 ### Secrets
 
 | Secret | Used for |
 |--------|----------|
 | `EXPO_TOKEN` | Non-interactive EAS build/submit |
-| `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` | Signing Android TV APK (Path B / local signing) |
-| `APPLE_APP_STORE_CONNECT_API_KEY` (+ issuer/key id) | `eas submit` / fastlane to TestFlight |
+| EAS-managed credentials (dashboard / `eas credentials`) | Apple signing, Android upload keystore, Google Play service account |
+| `ascAppId` in `eas.json` `submit.*.ios` | Non-interactive `eas submit` to App Store Connect / TestFlight |
 | `FIREBASE_APP_ID`, `FIREBASE_TOKEN` (optional) | Firebase App Distribution for Android testers |
 
 Store all in GitHub Actions secrets; never commit them (matches the no-secrets-in-git rule).
@@ -271,20 +323,20 @@ plugin depend on. It lives in the `argus-plugin-sdk` repo and is **types-first**
 
 For a solo/private setup optimizing for speed:
 
-1. **Android TV first** — local/EAS APK, `adb install` to a real device. Zero account friction; validates the app + DRM spike quickly.
-2. **Add EAS + `EXPO_TOKEN`** and a `build-android.yml` producing a downloadable APK artifact on tag.
-3. **Apple TV** — enroll in Apple Developer Program, set up TestFlight internal, use `eas build` + `eas submit` from Actions.
-4. **Optional:** Firebase App Distribution once there is more than one Android tester.
+1. **Android TV first** — `preview_tv` APK, `adb install` to a real device. Zero account friction; validates the app + DRM spike quickly.
+2. **Staging** — `staging_tv` + Play internal + TestFlight internal for developer-only store installs ([staging setup](#staging-store-tracks-developers-only)).
+3. **Production** — `production_tv` when ready for public stores.
 
 ---
 
 ## Decisions to confirm
 
-- [ ] **EAS vs self-hosted** builds (default: EAS; revisit on cost/quota).
-- [ ] **Apple Developer Program** enrollment + who owns the account/team.
-- [ ] **tvOS distribution:** TestFlight (default) vs ad-hoc + Apple Configurator.
-- [ ] **Android tester distribution:** raw APK/`adb` (default) vs Firebase App Distribution.
-- [ ] **APK vs AAB** for Android internal (APK is simpler for sideload; AAB needed only for Play).
+- [x] **EAS vs self-hosted** builds (default: EAS; revisit on cost/quota).
+- [x] **Apple Developer Program** enrollment + App Store Connect app (`ascAppId` wired).
+- [x] **tvOS staging:** TestFlight internal via `staging_tv` + `submit.staging` (default).
+- [x] **Android fast dev:** raw APK/`adb` via `preview_tv` (default).
+- [x] **Android staging:** AAB + Play internal track via `staging_tv` + `submit.staging`.
+- [ ] **Optional:** Firebase App Distribution as an alternative to Play internal for Android.
 
 Turn confirmed choices into an ADR (`docs/adr/`) and update the build tasks in [IMPLEMENTATION-PLAN.md](IMPLEMENTATION-PLAN.md).
 

@@ -3,9 +3,9 @@ import React from 'react';
 import { StyleSheet, useColorScheme } from 'react-native';
 import { version as expoVersion } from 'expo/package.json';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { useScreenDimensions } from '@/hooks/use-screen-dimensions';
+import { ThemedText } from '@/presentation/components/themed-text';
+import { ThemedView } from '@/presentation/components/themed-view';
+import { useScreenDimensions } from '@/presentation/hooks/use-screen-dimensions';
 
 export function WebBadge() {
   const scheme = useColorScheme();

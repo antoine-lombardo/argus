@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
-import { useScreenDimensions } from '@/hooks/use-screen-dimensions';
+import { useScreenDimensions } from '@/presentation/hooks/use-screen-dimensions';
 
 type HintRowProps = {
   title?: string;

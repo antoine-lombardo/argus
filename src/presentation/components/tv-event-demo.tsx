@@ -9,10 +9,10 @@ import {
   View,
 } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { useScreenDimensions } from '@/hooks/use-screen-dimensions';
-import { useTheme } from '@/hooks/use-theme';
+import { ThemedText } from '@/presentation/components/themed-text';
+import { ThemedView } from '@/presentation/components/themed-view';
+import { useScreenDimensions } from '@/presentation/hooks/use-screen-dimensions';
+import { useTheme } from '@/presentation/hooks/use-theme';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const useTVEventHandler = Platform.isTV
@@ -213,8 +213,6 @@ const TouchableNativeFeedbackButton = (props: {
 
 const useDemoStyles = function () {
   const { height, width, spacing } = useScreenDimensions();
-  const theme = useTheme();
-  const backgroundColor = theme.background;
   return StyleSheet.create({
     container: {
       flex: 1,

@@ -5,7 +5,10 @@
     "ios": {
       "supportsTablet": true,
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "net.oxoc.argus"
+      "bundleIdentifier": "net.oxoc.argus",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -64,6 +67,12 @@
       "eas": {
         "projectId": "9c5ba843-de0b-4f93-a0ff-83be2e867dc7"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/9c5ba843-de0b-4f93-a0ff-83be2e867dc7"
     }
   }
 }

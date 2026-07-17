@@ -2,8 +2,8 @@ import { Image } from 'expo-image';
 import { View } from 'react-native';
 import Animated, { Keyframe, Easing } from 'react-native-reanimated';
 
-import classes from '@/components/animated-icon.module.css';
-import { useAnimatedIconStyles } from '@/hooks/use-animated-styles';
+import classes from '@/presentation/components/animated-icon.module.css';
+import { useAnimatedIconStyles } from '@/presentation/hooks/use-animated-styles';
 const DURATION = 300;
 
 export function AnimatedSplashOverlay() {

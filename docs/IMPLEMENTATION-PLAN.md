@@ -13,10 +13,10 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 
 | Field          | Value                                                     |
 | -------------- | --------------------------------------------------------- |
-| Current phase  | Phase 2 in progress (host shell scaffolded)               |
-| Last updated   | 2026-07-15                                                |
-| Next milestone | `eas init` + first Android TV CI build; TV UI library ADR + DRM spike |
-| Blockers       | None                                                      |
+| Current phase  | Phase 2 in progress (2a scaffold + focus ADR)             |
+| Last updated   | 2026-07-16                                                |
+| Next milestone | First TestFlight via `staging_tv`; Phase 2c sidebar/rail; DRM spike (2b) |
+| Blockers       | None (EAS `npm ci` lockfile sync fixed locally — commit + rebuild) |
 
 ---
 
@@ -59,9 +59,9 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 ### 2a. Scaffold
 
 - [x] Init Expo app with dev client, TypeScript, tvOS + Android TV targets — `with-router-tv` example, upgraded to **Expo SDK 57** + `react-native-tvos@0.86-stable` (2026-07-15)
-- [ ] Choose + integrate RN TV component/focus library; ADR: **TV UI library**
-- [ ] Set up Zustand stores (search, library, plugins, player)
-- [ ] Project structure by layer (presentation / application / domain / platform) per ARCHITECTURE
+- [x] Choose + integrate RN TV focus: native `react-native-tvos` + host wrappers ([ADR 0004](adr/0004-tv-ui-focus.md)) (2026-07-16)
+- [x] Set up Zustand stores (search, library, plugins, player) — stubs ready for 2c (2026-07-16)
+- [x] Project structure by layer (presentation / application / domain / platform) per ARCHITECTURE (2026-07-16)
 - [~] Tooling: ESLint, Prettier/Biome, strict `tsconfig`, path aliases — ESLint (`eslint-config-expo`) + strict `tsconfig` + `@/*` paths done; Biome/Prettier TBD
 - [x] CI: typecheck + lint on PR (`ci.yml`) (2026-07-15)
 
@@ -90,8 +90,11 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 - [ ] Manage Android upload keystore as a CI secret — deferred; EAS manages credentials by default (`preview_tv` uses `withoutCredentials` for fast internal APKs)
 - [x] `ci.yml`: typecheck + lint on PR (Linux runner) (2026-07-15)
 - [x] `build-host.yml`: EAS Android TV + tvOS on `argus@*` tag / dispatch → artifacts + GitHub Release (2026-07-15)
-- [ ] Apple Developer Program enrollment + App Store Connect app record
-- [ ] tvOS: TestFlight internal build via `build-host.yml` (TestFlight dispatch) or `eas submit` locally
+- [x] `staging_tv` + `submit.staging`: store-signed builds → TestFlight internal + Play internal (`eas.json`, `build-host.yml`) (2026-07-15)
+- [x] Apple Developer Program enrollment + App Store Connect tvOS app + `ascAppId` `6791784830` in `eas.json` (2026-07-16)
+- [ ] Google Play Developer account + Play Console Android TV app + service account in EAS
+- [ ] tvOS: first TestFlight internal via **Build host app** (`staging_tv` + submit) — needs `eas credentials` for iOS
+- [ ] Android TV: first Play internal via **Build host app** (`staging_tv` + submit)
 - [ ] (Optional) Firebase App Distribution for Android testers
 
 **Exit criteria:** app runs on both TV platforms, navigates via D-pad, plays a clear stream, renders fixture data; a tagged commit produces installable Android TV + tvOS builds via GitHub Actions.
@@ -212,6 +215,8 @@ Record confirmations/changes to `(default)` decisions here; link the ADR.
 | 2026-07-15 | Host scaffold: Expo SDK 57 + `with-router-tv` + `react-native-tvos@0.86-stable`; `npm overrides` for TV fork peer resolution               | —                                                 | Phase 2a started                                                    |
 | 2026-07-15 | Host app versioning: Changesets owns `expo.version` (via `app.config.js`, private/no-publish, tags `argus@<version>`); EAS owns build number (`autoIncrement`, `appVersionSource: remote`) | [0003](adr/0003-app-versioning.md) | Mirrors SDK's Changesets flow |
 | 2026-07-15 | CI + EAS build workflows: `ci.yml`, `build-host.yml` on `argus@*` tag; EAS default over self-hosted Gradle/Xcode | — | `EXPO_TOKEN` + `@argus-tv/argus` EAS project linked |
+| 2026-07-15 | Staging distribution: `staging_tv` build + `submit.staging` (TestFlight internal + Play internal); tags stay on `preview_tv` APK | — | Needs Apple + Google developer accounts |
+| 2026-07-16 | TV focus: native `react-native-tvos` primitives + thin host wrappers; reject JS spatial-nav for v1 | [0004](adr/0004-tv-ui-focus.md) | Phase 2a focus + layers + Zustand stubs |
 
 ---
 

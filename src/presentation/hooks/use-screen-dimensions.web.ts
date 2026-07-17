@@ -1,4 +1,4 @@
-import { Spacing } from '@/constants/theme';
+import { Spacing } from '@/presentation/constants/theme';
 import { ScreenDimensionsResult } from './use-screen-dimensions';
 
 export function useScreenDimensions(): ScreenDimensionsResult {

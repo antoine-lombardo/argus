@@ -12,12 +12,12 @@ The **host TV app** lives in this repo (Expo SDK 57, `react-native-tvos`, Expo R
 
 This is a standing requirement. The user must **never** have to ask you to update docs. Whenever your change affects them, update these in the **same** change:
 
-| Doc | Update when… |
-|-----|--------------|
+| Doc                                                        | Update when…                                                                                                                                                                                                           |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md) | You start/finish a task, hit a blocker, or make a decision. Check off tasks, refresh the **status snapshot** (phase / last updated / next milestone / blockers), append to the **decision log** and **risk register**. |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | A design detail changes, or a `(default)` becomes decided (also add/link an ADR in `docs/adr/`). |
-| [docs/PACKAGING.md](docs/PACKAGING.md) | Anything about builds, distribution, or CI changes. |
-| [README.md](README.md) / this file | Docs are added, moved, or norms change—keep the docs table and links current. |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)               | A design detail changes, or a `(default)` becomes decided (also add/link an ADR in `docs/adr/`).                                                                                                                       |
+| [docs/PACKAGING.md](docs/PACKAGING.md)                     | Anything about builds, distribution, or CI changes.                                                                                                                                                                    |
+| [README.md](README.md) / this file                         | Docs are added, moved, or norms change—keep the docs table and links current.                                                                                                                                          |
 
 If code and docs disagree, that is a bug: fix the docs as part of the same work. Set "Last updated" to the current date when you touch the plan.
 
@@ -25,12 +25,12 @@ If code and docs disagree, that is a bug: fix the docs as part of the same work.
 
 Argus spans separate repos ([ADR 0002](docs/adr/0002-multi-repo-layout.md)):
 
-| Repo | Purpose |
-|------|---------|
-| `argus` (this repo) | Host TV app + product/process docs |
-| `argus-plugin-sdk` | The plugin contract, published to npm as `@argus-tv/plugin-sdk` |
-| `argus-plugins` | Official + reference plugins |
-| `argus-repo-index` | Official repo index + artifacts |
+| Repo                | Purpose                                                         |
+| ------------------- | --------------------------------------------------------------- |
+| `argus` (this repo) | Host TV app + product/process docs                              |
+| `argus-plugin-sdk`  | The plugin contract, published to npm as `@argus-tv/plugin-sdk` |
+| `argus-plugins`     | Official + reference plugins                                    |
+| `argus-repo-index`  | Official repo index + artifacts                                 |
 
 Each code repo carries its own `AGENTS.md`; read the one for the repo you're in.
 
@@ -60,20 +60,20 @@ that publishes to npm (provenance, `next` dist-tag for `0.x`). Full runbook:
 
 Follow the phasing in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md):
 
-1. Plugin contract and media model  
-2. Host app shell (React Native)  
-3. Reference / stub plugin  
-4. Repo install & update flow  
+1. Plugin contract and media model
+2. Host app shell (React Native)
+3. Reference / stub plugin
+4. Repo install & update flow
 5. Real providers (legal / available APIs only)
 
 Match existing project style once code exists. Prefer small, reviewable changes.
 
 ## Where to put new documentation
 
-| Kind | Location |
-|------|----------|
-| Product / process | `docs/*.md` |
-| Architecture decisions | `docs/adr/` (create when needed) |
-| Agent / contributor norms | `AGENTS.md`, `.cursor/rules/` |
+| Kind                      | Location                         |
+| ------------------------- | -------------------------------- |
+| Product / process         | `docs/*.md`                      |
+| Architecture decisions    | `docs/adr/` (create when needed) |
+| Agent / contributor norms | `AGENTS.md`, `.cursor/rules/`    |
 
 Link new docs from the README table when they are meant to be primary reading.

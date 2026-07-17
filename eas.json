@@ -45,7 +45,8 @@
       }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "distribution": "store"
     },
     "production_tv": {
       "extends": "production",
@@ -54,10 +55,36 @@
       },
       "ios": {
         "simulator": false
+      },
+      "android": {
+        "buildType": "app-bundle"
+      }
+    },
+    "staging_tv": {
+      "extends": "production_tv",
+      "channel": "staging",
+      "android": {
+        "buildType": "app-bundle"
       }
     }
   },
   "submit": {
-    "production": {}
+    "staging": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "completed"
+      },
+      "ios": {
+        "ascAppId": "6791784830"
+      }
+    },
+    "production": {
+      "android": {
+        "track": "production"
+      },
+      "ios": {
+        "ascAppId": "6791784830"
+      }
+    }
   }
 }

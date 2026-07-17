@@ -20,8 +20,8 @@ import { ExternalLink } from './external-link';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
-import { Colors, MaxContentWidth } from '@/constants/theme';
-import { useScreenDimensions } from '@/hooks/use-screen-dimensions';
+import { Colors, MaxContentWidth } from '@/presentation/constants/theme';
+import { useScreenDimensions } from '@/presentation/hooks/use-screen-dimensions';
 
 export default function AppTabs() {
   return (

@@ -1,4 +1,4 @@
-import { useScreenDimensions } from '@/hooks/use-screen-dimensions';
+import { useScreenDimensions } from '@/presentation/hooks/use-screen-dimensions';
 import { Platform, StyleSheet } from 'react-native';
 
 export const useAnimatedIconStyles = () => {
