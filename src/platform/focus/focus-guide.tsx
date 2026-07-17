@@ -1,4 +1,9 @@
-import type { ComponentProps, ReactNode } from 'react';
+import {
+  forwardRef,
+  type ComponentProps,
+  type ReactNode,
+  type Ref,
+} from 'react';
 import {
   Platform,
   StyleSheet,
@@ -17,18 +22,31 @@ type WebFallbackProps = {
   destinations?: FocusGuideProps['destinations'];
 };
 
+type FocusGuideNativeRef = View & {
+  setDestinations: (destinations: NonNullable<FocusGuideProps['destinations']>) => void;
+};
+
 /**
  * Thin wrapper around react-native-tvos `TVFocusGuideView`.
  * On web (non-TV), falls back to a plain View.
  * @see docs/adr/0004-tv-ui-focus.md
  */
-export function FocusGuide(props: FocusGuideProps) {
+export const FocusGuide = forwardRef<View, FocusGuideProps>(function FocusGuide(
+  props,
+  ref,
+) {
   if (Platform.OS === 'web') {
     const { children, style } = props as WebFallbackProps;
-    return <View style={[styles.web, style]}>{children}</View>;
+    return (
+      <View ref={ref} style={[styles.web, style]}>
+        {children}
+      </View>
+    );
   }
-  return <NativeTVFocusGuideView {...props} />;
-}
+  return (
+    <NativeTVFocusGuideView ref={ref as Ref<FocusGuideNativeRef>} {...props} />
+  );
+});
 
 const styles = StyleSheet.create({
   web: {

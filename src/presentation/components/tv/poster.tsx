@@ -10,13 +10,9 @@ type PosterProps = {
   title?: string;
   onSelect?: () => void;
   style?: StyleProp<ViewStyle>;
-  /** Preferred focus for first item in a rail. */
   hasTVPreferredFocus?: boolean;
 };
 
-/**
- * Poster tile shell — focusable placeholder for Phase 2c fixture grids.
- */
 export function Poster({
   title = 'Poster',
   onSelect,

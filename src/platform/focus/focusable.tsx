@@ -1,8 +1,9 @@
-import type { ReactNode } from 'react';
+import { forwardRef, type ReactNode } from 'react';
 import {
   Pressable,
   type PressableProps,
   type StyleProp,
+  type View,
   type ViewStyle,
 } from 'react-native';
 
@@ -35,15 +36,13 @@ function toFocusableState(state: {
  * TV-friendly Pressable: `onSelect` aliases `onPress`; style/children receive focused/hovered.
  * @see docs/adr/0004-tv-ui-focus.md
  */
-export function Focusable({
-  onSelect,
-  onPress,
-  style,
-  children,
-  ...rest
-}: FocusableProps) {
+export const Focusable = forwardRef<View, FocusableProps>(function Focusable(
+  { onSelect, onPress, style, children, ...rest },
+  ref,
+) {
   return (
     <Pressable
+      ref={ref}
       {...rest}
       onPress={onSelect ?? onPress}
       style={(state) => {
@@ -57,4 +56,4 @@ export function Focusable({
       }}
     </Pressable>
   );
-}
+});

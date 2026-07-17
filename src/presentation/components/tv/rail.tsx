@@ -15,7 +15,7 @@ type RailProps = {
  * Horizontal focusable rail shell (structure only — no fixture data yet).
  * Phase 2c will fill with posters / media rows.
  */
-export function Rail({ children, style, autoFocus = true, destinations }: RailProps) {
+export function Rail({ children, style, autoFocus = false, destinations }: RailProps) {
   const { spacing } = useScreenDimensions();
   return (
     <FocusGuide

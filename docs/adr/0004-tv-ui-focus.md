@@ -38,5 +38,5 @@ v1 does **not** target web-based TV shells. The scaffold already uses native foc
 
 **Follow-up**
 
-- Phase 2c: sidebar/rail screens built on these wrappers.
+- Phase 2c: ~~sidebar/rail screens built on these wrappers~~ — `AppShell` uses dual `FocusGuide autoFocus` (sidebar + content) for Left/Right handoff; Up/Down on nav changes route on focus (2026-07-17). Remaining screens use the same wrappers.
 - Revisit if web TV or large virtualized catalogs force a different focus model.
