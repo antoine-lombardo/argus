@@ -8,6 +8,12 @@ import {
   AXINOM_FPS_CERT_URL,
 } from '@/platform/player/axinom-fps-cert';
 
+/** EZDRM demo license → SPC content id (uuid after `skd://host/;`). */
+const EZDRM_FAIRPLAY_CONTENT_ID_BY_LICENSE: Record<string, string> = {
+  'https://fps.ezdrm.com/api/licenses/b99ed9e5-c641-49d1-bfa8-43692b686ddb':
+    'b99ed9e5-c641-49d1-bfa8-43692b686ddb',
+};
+
 function contentTypeFor(
   type: StreamType,
 ): 'auto' | 'hls' | 'dash' | 'progressive' {
@@ -82,6 +88,13 @@ export function toVideoSource(stream: StreamDescriptor): VideoSource {
       drm.base64CertificateData = AXINOM_FPS_CERT_BASE64;
     } else if (stream.drm.certificateUrl) {
       drm.certificateUrl = stream.drm.certificateUrl;
+    }
+
+    // EZDRM skd://fps.ezdrm.com/;{uuid} — SPC content id must be the uuid only.
+    const ezdrmContentId =
+      EZDRM_FAIRPLAY_CONTENT_ID_BY_LICENSE[stream.drm.licenseUrl];
+    if (ezdrmContentId) {
+      drm.contentId = ezdrmContentId;
     }
 
     source.drm = drm;
