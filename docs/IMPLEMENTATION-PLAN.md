@@ -15,8 +15,8 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 | -------------- | --------------------------------------------------------- |
 | Current phase  | Phase 2 in progress (2c screens)                          |
 | Last updated   | 2026-07-17                                                |
-| Next milestone | Home rows from fixtures; Search / Detail / Player screens; DRM spike (2b) |
-| Blockers       | None — tvOS TestFlight working; sidebar shell on device path |
+| Next milestone | Search screen; Detail / Player; DRM spike (2b)            |
+| Blockers       | None — sidebar shell + Home fixture rows on Apple TV path |
 
 ---
 
@@ -75,7 +75,7 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 ### 2c. Screens (fixtures)
 
 - [x] Sidebar/rail navigation shell with focus management — dual `FocusGuide autoFocus` (sidebar + content); Up/Down changes route on focus; Right/Left handoff verified on Apple TV (2026-07-17)
-- [ ] Home screen (rows from fixtures) — shell Home has a placeholder rail only
+- [x] Home screen (rows from fixtures) — `homeRows` / `MediaItem` from `@argus-tv/plugin-sdk`; Continue / Popular / Live rails (2026-07-17)
 - [ ] Search screen (on-screen keyboard + results grid, debounced)
 - [ ] Detail screen (unified layout for movie / episode / live event)
 - [ ] Player screen wired to the player shell (clear stream first)
@@ -220,6 +220,7 @@ Record confirmations/changes to `(default)` decisions here; link the ADR.
 | 2026-07-16 | TV focus: native `react-native-tvos` primitives + thin host wrappers; reject JS spatial-nav for v1 | [0004](adr/0004-tv-ui-focus.md) | Phase 2a focus + layers + Zustand stubs |
 | 2026-07-17 | tvOS TestFlight delivery via `xcrun altool -t appletvos` (not `eas submit`, which mis-tags tvOS as iOS → ITMS-90508/90545/90713/90039); CI `submit-tvos` job on `macos-latest` + `ASC_API_KEY_*` secrets | — | Proven by re-uploading rejected build 10; Android still uses `eas submit` |
 | 2026-07-17 | Phase 2c: Netflix-style `AppShell` — dual `FocusGuide autoFocus` (sidebar + content); Up/Down navigates on focus; no nextFocus/ref wiring. Verified on Apple TV | [0004](adr/0004-tv-ui-focus.md) | Next: Home fixture rows |
+| 2026-07-17 | Home fixture rows: `@argus-tv/plugin-sdk` `Row`/`MediaItem` fixtures + Rail titles + Poster artwork (`expo-image`) | — | Next: Search screen |
 
 ---
 

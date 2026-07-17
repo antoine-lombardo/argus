@@ -20,6 +20,7 @@
     "release": "changeset tag"
   },
   "dependencies": {
+    "@argus-tv/plugin-sdk": "^0.1.1",
     "@expo/vector-icons": "^15.0.2",
     "expo": "~57.0.6",
     "expo-build-properties": "~57.0.5",

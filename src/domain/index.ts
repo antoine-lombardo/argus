@@ -1,7 +1,8 @@
 /**
  * Domain layer — provider-agnostic media model and aggregation.
  *
- * Media DTOs live in `@argus-tv/plugin-sdk` for now. Host-specific domain
- * helpers (aggregation, ranking) will land here in later phases.
+ * Media DTOs live in `@argus-tv/plugin-sdk`. Host fixtures and domain helpers
+ * land here until real plugins feed the same shapes.
  */
-export {};
+
+export { fixtureMedia, homeRows } from './fixtures/home-rows';
