@@ -113,6 +113,13 @@ flowchart LR
 - **Alternative:** ad-hoc dev-signed build installed via **Xcode** or **Apple Configurator** (needs each Apple TV's UDID registered; install is cabled/paired).
 - Simulator builds (tvOS Simulator) are fine for fast iteration and need no signing.
 
+> **tvOS submission gotchas (learned the hard way).** A tvOS build gets rejected by App Store Connect processing with `ITMS-90508` (`DTPlatformName` invalid), `90545` (profile "not compatible with iOS apps"), `90713`/`90039` (iOS icon keys) when Apple validates the Apple TV binary **as iOS**. Root cause here: `@react-native-tvos/config-tv@0.1.6` inherits Expo's shared iOS `Info.plist` template and leaves **`LSRequiresIPhoneOS = true`** in the tvOS bundle, which flips Apple into iOS validation. Fixed by [`plugins/with-tv-info-plist-cleanup.js`](../plugins/with-tv-info-plist-cleanup.js), a config plugin that deletes `LSRequiresIPhoneOS`/`LSMinimumSystemVersion` when `EXPO_TV=1`. The tvOS keys (`DTPlatformName=appletvos`, `UIDeviceFamily=[3]`, `CFBundleSupportedPlatforms=[AppleTVOS]`) are correct; the iOS marker was the culprit.
+>
+> Also required once (independent of the above):
+>
+> - **ASC platform:** the App Store Connect app must include **tvOS** (App Store Connect → app → sidebar **Add Platform → tvOS**; same `ascAppId 6791784830`, universal-purchase record).
+> - **tvOS provisioning profile:** EAS generates a `tvOS App Store` profile automatically when `EXPO_TV=1` (the portal may still label its Platform "iOS" — the **Type** is what matters). Verify on the [EAS credentials page](https://expo.dev/accounts/argus-tv/projects/argus/credentials). See [Expo TV credentials](https://docs.expo.dev/guides/building-for-tv/#credentials-for-tvos-app-store-builds).
+
 ### Reality check for "private developers only"
 
 - **Android (preview):** fully self-serve via APK/`adb`, no accounts, no cost.
@@ -150,7 +157,7 @@ flowchart LR
 
 **One-time setup (staging):**
 
-1. **Apple** — [Apple Developer Program](https://developer.apple.com/programs/) enrolled; App Store Connect app for `net.oxoc.argus` (`ascAppId` `6791784830` in `eas.json`). Run `eas credentials` for iOS signing; optional ASC API key for CI submit.
+1. **Apple** — [Apple Developer Program](https://developer.apple.com/programs/) enrolled; App Store Connect app for `net.oxoc.argus` (`ascAppId` `6791784830` in `eas.json`). Run `eas credentials` for iOS **build** signing (distribution cert + profile). For CI / `--non-interactive` submit, also set up an **App Store Connect API Key** once locally (see below) — without it, Actions fails with `App Store Connect API Keys cannot be set up in --non-interactive mode`.
 2. **Google** — [Play Console](https://play.google.com/console) developer account, create the Android TV app, upload a Google **service account key** via `eas credentials` (Android → Google Service Account).
 3. **First `staging_tv` build** — EAS will prompt for (or generate) an Android **upload keystore** on the first store build; credentials are stored on Expo.
 4. **Invite testers** — Play Console → Internal testing → testers; App Store Connect → TestFlight → Internal Testing group.
@@ -229,10 +236,26 @@ Before the first EAS build from CI:
 |--------|----------|
 | `EXPO_TOKEN` | Non-interactive EAS build/submit |
 | EAS-managed credentials (dashboard / `eas credentials`) | Apple signing, Android upload keystore, Google Play service account |
-| `ascAppId` in `eas.json` `submit.*.ios` | Non-interactive `eas submit` to App Store Connect / TestFlight |
+| `ascAppId` in `eas.json` `submit.*.ios` | Targets the ASC app on submit (`6791784830`) |
+| ASC API Key on the EAS project | Required for `eas submit --non-interactive` in CI |
 | `FIREBASE_APP_ID`, `FIREBASE_TOKEN` (optional) | Firebase App Distribution for Android testers |
 
 Store all in GitHub Actions secrets; never commit them (matches the no-secrets-in-git rule).
+
+**One-time ASC API Key (required for Actions submit):**
+
+```bash
+npx eas-cli credentials -p ios
+# production / store profile → App Store Connect: Manage your API Key
+# → Set up your project to use an API Key for EAS Submit
+# → Add a new API Key (or use an existing one)
+```
+
+Then re-run **Build host app** with submit enabled, or upload the already-built IPA:
+
+```bash
+npx eas-cli submit -p ios --profile staging --latest
+```
 
 ### Versioning builds
 

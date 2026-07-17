@@ -16,7 +16,7 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 | Current phase  | Phase 2 in progress (2a scaffold + focus ADR)             |
 | Last updated   | 2026-07-16                                                |
 | Next milestone | First TestFlight via `staging_tv`; Phase 2c sidebar/rail; DRM spike (2b) |
-| Blockers       | None (EAS `npm ci` lockfile sync fixed locally — commit + rebuild) |
+| Blockers       | tvOS TestFlight: verifying `with-tv-info-plist-cleanup` plugin fix (strips `LSRequiresIPhoneOS` so Apple stops validating the tvOS binary as iOS) — build+submit in flight |
 
 ---
 
