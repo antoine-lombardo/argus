@@ -16,7 +16,7 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 | Current phase  | Phase 2 in progress (2a scaffold + focus ADR)             |
 | Last updated   | 2026-07-17                                                |
 | Next milestone | Phase 2c sidebar/rail; DRM spike (2b)                     |
-| Blockers       | None — tvOS TestFlight unblocked. Build 10 uploaded via `altool -t appletvos` (`eas submit` mis-delivers tvOS as iOS); CI now uses the `submit-tvos` altool job |
+| Blockers       | None — tvOS TestFlight working (build 11 installed on Apple TV) |
 
 ---
 
@@ -94,7 +94,7 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 - [x] Apple Developer Program enrollment + App Store Connect tvOS app + `ascAppId` `6791784830` in `eas.json` (2026-07-16)
 - [ ] Google Play Developer account + Play Console Android TV app + service account in EAS
 - [x] tvOS: first TestFlight upload succeeded — build 10 IPA delivered via `altool -t appletvos` (2026-07-17); CI `submit-tvos` job (`macos-latest`) automates it with `ASC_API_KEY_*` secrets
-- [ ] tvOS: confirm build appears in TestFlight and installs on a physical Apple TV
+- [x] tvOS: build 11 on TestFlight and installed on a physical Apple TV (2026-07-17)
 - [ ] Android TV: first Play internal via **Build host app** (`staging_tv` + submit)
 - [ ] (Optional) Firebase App Distribution for Android testers
 
