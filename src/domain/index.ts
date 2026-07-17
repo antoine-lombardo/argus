@@ -8,9 +8,16 @@
 export { fixtureDetails, getFixtureDetails } from './fixtures/details';
 export { fixtureMedia, homeRows } from './fixtures/home-rows';
 export {
+  libraryContinueWatching,
+  libraryFavorites,
+  resolveFixtureMedia,
+} from './fixtures/library';
+export {
   CLEAR_HLS_URL,
   getFixturePlayback,
   playbackLabel,
 } from './fixtures/playback';
+export { fixturePlugins } from './fixtures/plugins';
 export { searchCatalog, searchFixtures } from './fixtures/search';
 export { mediaIdKey, parseMediaIdKey } from './media-id';
+

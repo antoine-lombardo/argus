@@ -91,7 +91,10 @@ export default function PlayerScreen() {
   );
 
   const playerRef = useRef(player);
-  playerRef.current = player;
+
+  useEffect(() => {
+    playerRef.current = player;
+  }, [player]);
 
   const { isPlaying } = useEvent(player, 'playingChange', {
     isPlaying: player.playing,

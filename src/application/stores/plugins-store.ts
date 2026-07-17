@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+import { fixturePlugins } from '@/domain/fixtures/plugins';
+
 export type PluginEntry = {
   id: string;
   name: string;
@@ -12,15 +14,14 @@ type PluginsState = {
   setInstalled: (installed: PluginEntry[]) => void;
   enable: (id: string) => void;
   disable: (id: string) => void;
+  toggle: (id: string) => void;
   reset: () => void;
 };
 
-const initial = {
-  installed: [] as PluginEntry[],
-};
+const seeded: PluginEntry[] = fixturePlugins.map((p) => ({ ...p }));
 
 export const usePluginsStore = create<PluginsState>((set) => ({
-  ...initial,
+  installed: seeded,
   setInstalled: (installed) => set({ installed }),
   enable: (id) =>
     set((s) => ({
@@ -34,5 +35,11 @@ export const usePluginsStore = create<PluginsState>((set) => ({
         p.id === id ? { ...p, enabled: false } : p,
       ),
     })),
-  reset: () => set(initial),
+  toggle: (id) =>
+    set((s) => ({
+      installed: s.installed.map((p) =>
+        p.id === id ? { ...p, enabled: !p.enabled } : p,
+      ),
+    })),
+  reset: () => set({ installed: seeded.map((p) => ({ ...p })) }),
 }));

@@ -13,10 +13,10 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 
 | Field          | Value                                                     |
 | -------------- | --------------------------------------------------------- |
-| Current phase  | Phase 2 in progress (2c screens)                          |
+| Current phase  | Phase 2 in progress (2c done; 2b DRM still open)          |
 | Last updated   | 2026-07-17                                                |
-| Next milestone | Rebuild native for expo-video; verify clear HLS; Library / Settings |
-| Blockers       | Native rebuild required after switching to `expo-video` |
+| Next milestone | DRM spike on device (2b); optional player chrome polish   |
+| Blockers       | None for fixture shell — FairPlay needs physical Apple TV |
 
 ---
 
@@ -69,7 +69,7 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 
 - [~] Spike in-app playback with DRM on **tvOS** (FairPlay) and **Android TV** (Widevine) — library chosen ([ADR 0006](adr/0006-player-expo-video.md)); device DRM streams still todo
 - [x] Evaluate: existing RN video lib vs custom Expo native module — chose `expo-video` over RNV v7 (not TV-ready) / Bitmovin / custom module ([ADR 0006](adr/0006-player-expo-video.md); supersedes [0005](adr/0005-player-react-native-video.md)) (2026-07-17)
-- [~] Play a clear HLS stream end-to-end; then a DRM-protected test stream — clear HLS Player screen wired; needs native rebuild + device verify
+- [~] Play a clear HLS stream end-to-end; then a DRM-protected test stream — clear HLS verified on tvOS Simulator + Android emulator; DRM streams still todo
 - [x] Write ADR: **DRM player module** — [ADR 0006](adr/0006-player-expo-video.md) (library lock; DRM spike remains)
 
 ### 2c. Screens (fixtures)
@@ -79,8 +79,8 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 - [x] Search screen (on-screen keyboard + results grid, debounced) — `TvKeyboard` + fixture `searchFixtures`; 300ms debounce via `useSearchStore` (2026-07-17)
 - [x] Detail screen (unified layout for movie / episode / live event) — `/detail` + `getFixtureDetails`; Home/Search posters navigate; Play stashes id in `usePlayerStore` (2026-07-17)
 - [x] Player screen wired to the player shell (clear stream first) — `/player` + `expo-video` + fixture HLS; Detail Play / episodes push player ([ADR 0006](adr/0006-player-expo-video.md)) (2026-07-17)
-- [ ] Library screen (favorites / continue watching from local store)
-- [ ] Settings screen (global + placeholder per-plugin)
+- [x] Library screen (favorites / continue watching from local store) — seeded fixture rails + Detail navigation / focus restore (2026-07-17)
+- [x] Settings screen (global + placeholder per-plugin) — autoplay / reduce-motion toggles + fixture plugin enable/disable (2026-07-17)
 
 ### 2d. Build & distribution (see [PACKAGING.md](PACKAGING.md))
 
@@ -225,6 +225,7 @@ Record confirmations/changes to `(default)` decisions here; link the ADR.
 | 2026-07-17 | Detail: unified `/detail` for movie/series/episode/live fixtures (`MediaDetails`); Play → player store until Player screen | — | Next: Player screen |
 | 2026-07-17 | Root `Stack`: `(shell)` (sidebar + tabs) stays mounted under full-screen `detail`; Back pops Detail over the whole UI including sidenav | [0004](adr/0004-tv-ui-focus.md) | Avoids remount/scroll jump on Back |
 | 2026-07-17 | Player: briefly tried RNV v7; **not TV-ready** (podspecs `:ios` only) — superseded by `expo-video` + host chrome; clear HLS fixtures | [0005](adr/0005-player-react-native-video.md) → [0006](adr/0006-player-expo-video.md) | Rebuild native (`prebuild:tv` / `run:ios`); DRM + HLS rewrite transport later |
+| 2026-07-17 | Phase 2c complete: Library (continue + favorites from store) + Settings (global toggles + plugin enable placeholders) | — | Next: DRM spike (2b) or player chrome polish |
 
 ---
 
