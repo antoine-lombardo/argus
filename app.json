@@ -52,8 +52,7 @@
           }
         }
       ],
-      "expo-web-browser",
-      "./plugins/with-tv-info-plist-cleanup"
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

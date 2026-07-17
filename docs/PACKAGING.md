@@ -113,12 +113,14 @@ flowchart LR
 - **Alternative:** ad-hoc dev-signed build installed via **Xcode** or **Apple Configurator** (needs each Apple TV's UDID registered; install is cabled/paired).
 - Simulator builds (tvOS Simulator) are fine for fast iteration and need no signing.
 
-> **tvOS submission gotchas (learned the hard way).** A tvOS build gets rejected by App Store Connect processing with `ITMS-90508` (`DTPlatformName` invalid), `90545` (profile "not compatible with iOS apps"), `90713`/`90039` (iOS icon keys) when Apple validates the Apple TV binary **as iOS**. Root cause here: `@react-native-tvos/config-tv@0.1.6` inherits Expo's shared iOS `Info.plist` template and leaves **`LSRequiresIPhoneOS = true`** in the tvOS bundle, which flips Apple into iOS validation. Fixed by [`plugins/with-tv-info-plist-cleanup.js`](../plugins/with-tv-info-plist-cleanup.js), a config plugin that deletes `LSRequiresIPhoneOS`/`LSMinimumSystemVersion` when `EXPO_TV=1`. The tvOS keys (`DTPlatformName=appletvos`, `UIDeviceFamily=[3]`, `CFBundleSupportedPlatforms=[AppleTVOS]`) are correct; the iOS marker was the culprit.
+> **tvOS submit gotcha — `eas submit` delivers tvOS as iOS.** App Store Connect processing rejects the Apple TV binary with `ITMS-90508` (`DTPlatformName` invalid), `90545` (profile "not compatible with iOS apps"), `90713`/`90039` (iOS icon keys) — all symptoms of Apple validating a tvOS binary **as iOS**. The binary is correct (`DTPlatformName=appletvos`, `UIDeviceFamily=[3]`, `CFBundleSupportedPlatforms=[AppleTVOS]`, tvOS App Store profile), so the binary is **not** the cause — verified by stripping `LSRequiresIPhoneOS` and still getting identical errors on build 10. The cause is the **delivery**: `eas submit -p ios` tags the upload as the iOS platform (there is no tvOS platform in `eas submit`; it's a known tooling gap — Expo [#29604](https://github.com/expo/expo/issues/29604), and the delivery `app_platform=ios` problem from [fastlane/pilot #92](https://github.com/fastlane/pilot/issues/92)).
 >
-> Also required once (independent of the above):
+> **Working upload path for tvOS:** build the IPA with EAS, then upload it yourself declaring the tvOS platform (do **not** use `eas submit` for tvOS):
 >
-> - **ASC platform:** the App Store Connect app must include **tvOS** (App Store Connect → app → sidebar **Add Platform → tvOS**; same `ascAppId 6791784830`, universal-purchase record).
-> - **tvOS provisioning profile:** EAS generates a `tvOS App Store` profile automatically when `EXPO_TV=1` (the portal may still label its Platform "iOS" — the **Type** is what matters). Verify on the [EAS credentials page](https://expo.dev/accounts/argus-tv/projects/argus/credentials). See [Expo TV credentials](https://docs.expo.dev/guides/building-for-tv/#credentials-for-tvos-app-store-builds).
+> - **Transporter.app** (Mac App Store): download the IPA from the EAS build page, drag it in, upload. Transporter auto-detects `appletvos` from the bundle. Easiest; signs in with your Apple ID.
+> - **`xcrun altool`** (needs Xcode on macOS): `xcrun altool --upload-app -f app.ipa -t appletvos --apiKey <KEY_ID> --apiIssuer <ISSUER_ID>` — the `-t appletvos` flag is the fix. (Reference: [Expo tvOS → TestFlight walkthrough](https://dev.to/desertskylabs/how-i-got-an-expo-tvos-app-to-testflight-from-windows-without-buying-a-mac-first-358p).)
+>
+> Also required once: the ASC app must include the **tvOS** platform (App Store Connect → app → **Add Platform → tvOS**), and the EAS provisioning profile must be `tvOS App Store` type (EAS creates this automatically when `EXPO_TV=1`).
 
 ### Reality check for "private developers only"
 
