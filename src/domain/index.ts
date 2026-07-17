@@ -14,6 +14,8 @@ export {
 } from './fixtures/library';
 export {
   CLEAR_HLS_URL,
+  FAIRPLAY_HLS,
+  WIDEVINE_DASH,
   getFixturePlayback,
   playbackLabel,
 } from './fixtures/playback';

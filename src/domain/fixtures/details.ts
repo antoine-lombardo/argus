@@ -268,6 +268,38 @@ export const fixtureDetails: Record<string, MediaDetails> = {
       channel: 'Fixture After Dark',
     },
   },
+  [mediaIdKey(fixtureMedia.drmWidevine.id)]: {
+    id: fixtureMedia.drmWidevine.id,
+    type: 'movie',
+    title: fixtureMedia.drmWidevine.title,
+    year: 2012,
+    runtime: 12,
+    artwork: {
+      ...fixtureMedia.drmWidevine.artwork,
+      backdrop: backdrop('drm-wv'),
+    },
+    overview:
+      'Phase 2b Widevine spike: Google Tears of Steel DASH + Widevine UAT proxy (ExoPlayer demo asset). Play on Android TV / emulator.',
+    genres: ['DRM', 'Test'],
+    cast: [],
+    badges: fixtureMedia.drmWidevine.badges,
+  },
+  [mediaIdKey(fixtureMedia.drmFairplay.id)]: {
+    id: fixtureMedia.drmFairplay.id,
+    type: 'movie',
+    title: fixtureMedia.drmFairplay.title,
+    year: 2026,
+    runtime: 1,
+    artwork: {
+      ...fixtureMedia.drmFairplay.artwork,
+      backdrop: backdrop('drm-fp'),
+    },
+    overview:
+      'Phase 2b FairPlay spike: Axinom HLS test vector + evaluation FPS certificate + X-AxDRM-Message token. Play on a physical Apple TV (Simulator cannot FairPlay).',
+    genres: ['DRM', 'Test'],
+    cast: [],
+    badges: fixtureMedia.drmFairplay.badges,
+  },
 };
 
 /** Look up fixture details by `MediaId` (Phase 2c stand-in for `getDetails`). */

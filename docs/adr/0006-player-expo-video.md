@@ -44,6 +44,8 @@ Options compared:
 
 **Follow-up**
 
-- Phase 2c: clear HLS Player screen consuming fixture `StreamDescriptor`.
+- ~~Phase 2c: clear HLS Player screen consuming fixture `StreamDescriptor`.~~
 - Later: host HLS proxy / transport API for plugin playlist rewrite.
-- Phase 2b: FairPlay + Widevine on device; note gaps here or in a superseding ADR.
+- Phase 2b (in progress): host maps `StreamDescriptor.drm` → expo-video `VideoSource.drm` via `toVideoSource` (`licenseUrl` → `licenseServer`). Home **DRM spike** rail:
+  - **Widevine:** Android only (not Apple). Google Tears of Steel DASH + Widevine UAT proxy (`video_id=2015_tears`) — verify on Android TV / emulator.
+  - **FairPlay:** Apple **device** only — Simulator crashes if `AVContentKeySession` is created; we gate with `expo-device` `isDevice` and never mount the player when blocked (also avoids clear-HLS audio leak from a placeholder source). Fixture: Axinom HLS test vector + `tools.axinom.com` FPS cert + `X-AxDRM-Message` — verify on physical ATV.

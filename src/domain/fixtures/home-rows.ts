@@ -124,6 +124,34 @@ export const fixtureMedia = {
       poster: 'https://picsum.photos/seed/argus-voltage/300/450',
     },
   }),
+  drmWidevine: item({
+    providerId: 'drm-widevine',
+    type: 'movie',
+    title: 'Widevine spike',
+    year: 2012,
+    tagline: 'Android TV only',
+    artwork: {
+      poster: 'https://picsum.photos/seed/argus-drm-wv/300/450',
+    },
+    badges: [
+      { pluginId: FIXTURE_PLUGIN, label: 'Widevine' },
+      { pluginId: FIXTURE_PLUGIN, label: 'DRM' },
+    ],
+  }),
+  drmFairplay: item({
+    providerId: 'drm-fairplay',
+    type: 'movie',
+    title: 'FairPlay spike',
+    year: 2026,
+    tagline: 'Physical Apple TV only',
+    artwork: {
+      poster: 'https://picsum.photos/seed/argus-drm-fp/300/450',
+    },
+    badges: [
+      { pluginId: FIXTURE_PLUGIN, label: 'FairPlay' },
+      { pluginId: FIXTURE_PLUGIN, label: 'DRM' },
+    ],
+  }),
 } as const satisfies Record<string, MediaItem>;
 
 /** Home rows shaped like `ArgusPlugin.getHomeRows()` output. */
@@ -148,5 +176,10 @@ export const homeRows: Row[] = [
     id: 'live',
     title: 'Live & upcoming',
     items: [fixtureMedia.relay, fixtureMedia.nightowl],
+  },
+  {
+    id: 'drm-spike',
+    title: 'DRM spike',
+    items: [fixtureMedia.drmWidevine, fixtureMedia.drmFairplay],
   },
 ];

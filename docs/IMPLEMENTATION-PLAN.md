@@ -13,10 +13,10 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 
 | Field          | Value                                                     |
 | -------------- | --------------------------------------------------------- |
-| Current phase  | Phase 2 in progress (2c done; 2b DRM still open)          |
+| Current phase  | Phase 2 (2c done; 2b DRM spike wired, device verify open) |
 | Last updated   | 2026-07-17                                                |
-| Next milestone | DRM spike on device (2b); optional player chrome polish   |
-| Blockers       | None for fixture shell — FairPlay needs physical Apple TV |
+| Next milestone | Verify Widevine on Android TV; FairPlay on physical ATV   |
+| Blockers       | FairPlay needs physical Apple TV (EZDRM fixture wired)    |
 
 ---
 
@@ -67,9 +67,9 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 
 ### 2b. DRM spike (high risk — do early)
 
-- [~] Spike in-app playback with DRM on **tvOS** (FairPlay) and **Android TV** (Widevine) — library chosen ([ADR 0006](adr/0006-player-expo-video.md)); device DRM streams still todo
+- [~] Spike in-app playback with DRM on **tvOS** (FairPlay) and **Android TV** (Widevine) — `toVideoSource` + Home DRM rail; Widevine/FairPlay device verify still open ([ADR 0006](adr/0006-player-expo-video.md))
 - [x] Evaluate: existing RN video lib vs custom Expo native module — chose `expo-video` over RNV v7 (not TV-ready) / Bitmovin / custom module ([ADR 0006](adr/0006-player-expo-video.md); supersedes [0005](adr/0005-player-react-native-video.md)) (2026-07-17)
-- [~] Play a clear HLS stream end-to-end; then a DRM-protected test stream — clear HLS verified on tvOS Simulator + Android emulator; DRM streams still todo
+- [~] Play a clear HLS stream end-to-end; then a DRM-protected test stream — clear HLS verified; Widevine = Google Tears/UAT; FairPlay = Axinom; device verify open
 - [x] Write ADR: **DRM player module** — [ADR 0006](adr/0006-player-expo-video.md) (library lock; DRM spike remains)
 
 ### 2c. Screens (fixtures)
@@ -226,6 +226,10 @@ Record confirmations/changes to `(default)` decisions here; link the ADR.
 | 2026-07-17 | Root `Stack`: `(shell)` (sidebar + tabs) stays mounted under full-screen `detail`; Back pops Detail over the whole UI including sidenav | [0004](adr/0004-tv-ui-focus.md) | Avoids remount/scroll jump on Back |
 | 2026-07-17 | Player: briefly tried RNV v7; **not TV-ready** (podspecs `:ios` only) — superseded by `expo-video` + host chrome; clear HLS fixtures | [0005](adr/0005-player-react-native-video.md) → [0006](adr/0006-player-expo-video.md) | Rebuild native (`prebuild:tv` / `run:ios`); DRM + HLS rewrite transport later |
 | 2026-07-17 | Phase 2c complete: Library (continue + favorites from store) + Settings (global toggles + plugin enable placeholders) | — | Next: DRM spike (2b) or player chrome polish |
+| 2026-07-17 | DRM spike plumbing: `StreamDescriptor` → expo-video `VideoSource.drm`; Home rail Widevine (Shaka/CWIP) + FairPlay placeholder | [0006](adr/0006-player-expo-video.md) | Verify WV on Android TV; FPS on device with real cert |
+| 2026-07-17 | FairPlay fixture: EZDRM public demo (`ezdrm.m3u8` + license UUID + `eleisure.cer`) | [0006](adr/0006-player-expo-video.md) | Verify FPS on physical Apple TV |
+| 2026-07-17 | Widevine fixture: same vendor — EZDRM Big Buck Bunny DASH + `proxy?pX=E0183F` (replaces Shaka/CWIP) | [0006](adr/0006-player-expo-video.md) | Verify WV on Android TV / emulator |
+| 2026-07-17 | EZDRM demos did not play; swapped fixtures → Widevine Google Tears/UAT; FairPlay Axinom + FPS cert + token | [0006](adr/0006-player-expo-video.md) | Re-verify on Android TV emulator + physical ATV |
 
 ---
 

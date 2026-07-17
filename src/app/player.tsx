@@ -1,3 +1,4 @@
+import type { StreamDescriptor } from '@argus-tv/plugin-sdk';
 import { useEvent } from 'expo';
 import {
   useFocusEffect,
@@ -11,12 +12,16 @@ import { StyleSheet, View } from 'react-native';
 
 import { usePlayerStore } from '@/application/stores/player-store';
 import {
-  CLEAR_HLS_URL,
   getFixturePlayback,
   parseMediaIdKey,
   playbackLabel,
 } from '@/domain';
 import { Focusable, FocusGuide } from '@/platform/focus';
+import {
+  drmBlockReason,
+  drmSupportedOnPlatform,
+  toVideoSource,
+} from '@/platform/player';
 import { ThemedText } from '@/presentation/components/themed-text';
 import { useScreenDimensions } from '@/presentation/hooks/use-screen-dimensions';
 import { useTheme } from '@/presentation/hooks/use-theme';
@@ -40,15 +45,47 @@ function safePlay(player: VideoPlayer) {
   }
 }
 
+function CannotPlay({ message, onBack }: { message: string; onBack: () => void }) {
+  const theme = useTheme();
+  const { spacing } = useScreenDimensions();
+
+  return (
+    <FocusGuide autoFocus style={[styles.root, { backgroundColor: theme.background }]}>
+      <View style={[styles.fallback, { padding: spacing.five, gap: spacing.three }]}>
+        <ThemedText type="title">Cannot play</ThemedText>
+        <ThemedText themeColor="textSecondary">{message}</ThemedText>
+        <Focusable
+          hasTVPreferredFocus
+          onSelect={onBack}
+          style={({ focused }) => ({
+            alignSelf: 'flex-start',
+            paddingVertical: spacing.three,
+            paddingHorizontal: spacing.five,
+            borderRadius: spacing.two,
+            borderWidth: 3,
+            borderColor: focused ? theme.tint : 'transparent',
+            backgroundColor: theme.backgroundElement,
+          })}
+        >
+          <ThemedText type="smallBold">Back</ThemedText>
+        </Focusable>
+      </View>
+    </FocusGuide>
+  );
+}
+
+type ActivePlayerProps = {
+  stream: StreamDescriptor;
+  title: string;
+  mediaKey: string;
+};
+
 /**
- * Full-screen player shell — clear HLS via expo-video (ADR 0006).
- *
- * Lifecycle: pause on blur / beforeRemove (expo #42512). Focus effect deps must
- * be stable — never depend on a freshly allocated `StreamDescriptor` object.
- *
- * Focus: wrap VideoView in TVFocusGuideView focusable={false} (expo #40264).
+ * Only mounted when the stream is playable on this platform.
+ * Avoids loading clear HLS as a placeholder (audio leak) and never creates
+ * FairPlay ContentKeySession on Simulator (native crash).
  */
-export default function PlayerScreen() {
+function ActivePlayer({ stream, title, mediaKey }: ActivePlayerProps) {
   const theme = useTheme();
   const router = useRouter();
   const navigation = useNavigation();
@@ -58,37 +95,13 @@ export default function PlayerScreen() {
   const setError = usePlayerStore((s) => s.setError);
   const reset = usePlayerStore((s) => s.reset);
 
-  const params = useLocalSearchParams<{
-    pluginId?: string;
-    type?: string;
-    providerId?: string;
-  }>();
-
-  const mediaKey =
-    params.pluginId && params.type && params.providerId
-      ? `${params.pluginId}/${params.type}/${params.providerId}`
-      : null;
-  const id = mediaKey ? parseMediaIdKey(mediaKey) : null;
-  const stream = id ? getFixturePlayback(id) : undefined;
-  /** Stable across renders — object identity of `stream` / `id` is not. */
-  const streamUrl = stream?.url;
-  const title = id ? playbackLabel(id) : 'Player';
-
-  const player = useVideoPlayer(
-    {
-      uri: streamUrl ?? CLEAR_HLS_URL,
-      contentType: 'hls',
-    },
-    (instance) => {
-      instance.loop = false;
-      instance.muted = false;
-      instance.volume = 1;
-      instance.playbackRate = 1;
-      if (streamUrl) {
-        instance.play();
-      }
-    },
-  );
+  const player = useVideoPlayer(toVideoSource(stream), (instance) => {
+    instance.loop = false;
+    instance.muted = false;
+    instance.volume = 1;
+    instance.playbackRate = 1;
+    instance.play();
+  });
 
   const playerRef = useRef(player);
 
@@ -105,17 +118,14 @@ export default function PlayerScreen() {
     router.back();
   }, [router]);
 
-  // Pause only when leaving focus. Depend on streamUrl (string), not `stream`.
   useFocusEffect(
     useCallback(() => {
-      if (streamUrl) {
-        safePlay(playerRef.current);
-        setStatus('playing');
-      }
+      safePlay(playerRef.current);
+      setStatus('playing');
       return () => {
         safePause(playerRef.current);
       };
-    }, [streamUrl, setStatus]),
+    }, [setStatus]),
   );
 
   useEffect(() => {
@@ -126,15 +136,11 @@ export default function PlayerScreen() {
   }, [navigation]);
 
   useEffect(() => {
-    if (!mediaKey || !streamUrl) {
-      setError('No playable stream for this title');
-      return;
-    }
     setMedia(mediaKey);
     return () => {
       reset();
     };
-  }, [mediaKey, streamUrl, setMedia, setError, reset]);
+  }, [mediaKey, setMedia, reset]);
 
   useEffect(() => {
     const sub = player.addListener('statusChange', ({ status, error }) => {
@@ -146,34 +152,6 @@ export default function PlayerScreen() {
       sub.remove();
     };
   }, [player, setError]);
-
-  if (!stream || !streamUrl) {
-    return (
-      <FocusGuide autoFocus style={[styles.root, { backgroundColor: theme.background }]}>
-        <View style={[styles.fallback, { padding: spacing.five, gap: spacing.three }]}>
-          <ThemedText type="title">Cannot play</ThemedText>
-          <ThemedText themeColor="textSecondary">
-            No fixture stream for this item.
-          </ThemedText>
-          <Focusable
-            hasTVPreferredFocus
-            onSelect={goBack}
-            style={({ focused }) => ({
-              alignSelf: 'flex-start',
-              paddingVertical: spacing.three,
-              paddingHorizontal: spacing.five,
-              borderRadius: spacing.two,
-              borderWidth: 3,
-              borderColor: focused ? theme.tint : 'transparent',
-              backgroundColor: theme.backgroundElement,
-            })}
-          >
-            <ThemedText type="smallBold">Back</ThemedText>
-          </Focusable>
-        </View>
-      </FocusGuide>
-    );
-  }
 
   return (
     <View style={[styles.root, { backgroundColor: '#000' }]}>
@@ -197,6 +175,11 @@ export default function PlayerScreen() {
         ]}
       >
         <ThemedText type="subtitle">{title}</ThemedText>
+        {stream.drm ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            DRM: {stream.drm.scheme}
+          </ThemedText>
+        ) : null}
         <View style={[styles.actions, { gap: spacing.three }]}>
           <Focusable
             hasTVPreferredFocus
@@ -237,6 +220,49 @@ export default function PlayerScreen() {
       </FocusGuide>
     </View>
   );
+}
+
+/**
+ * Full-screen player shell — expo-video (ADR 0006).
+ * Maps `StreamDescriptor` (incl. DRM) → `VideoSource`.
+ */
+export default function PlayerScreen() {
+  const router = useRouter();
+
+  const params = useLocalSearchParams<{
+    pluginId?: string;
+    type?: string;
+    providerId?: string;
+  }>();
+
+  const mediaKey =
+    params.pluginId && params.type && params.providerId
+      ? `${params.pluginId}/${params.type}/${params.providerId}`
+      : null;
+  const id = mediaKey ? parseMediaIdKey(mediaKey) : null;
+  const stream = id ? getFixturePlayback(id) : undefined;
+  const title = id ? playbackLabel(id) : 'Player';
+
+  const goBack = useCallback(() => {
+    router.back();
+  }, [router]);
+
+  if (!stream || !mediaKey) {
+    return (
+      <CannotPlay message="No fixture stream for this item." onBack={goBack} />
+    );
+  }
+
+  if (stream.drm && !drmSupportedOnPlatform(stream.drm.scheme)) {
+    return (
+      <CannotPlay
+        message={drmBlockReason(stream.drm.scheme)}
+        onBack={goBack}
+      />
+    );
+  }
+
+  return <ActivePlayer stream={stream} title={title} mediaKey={mediaKey} />;
 }
 
 const styles = StyleSheet.create({
