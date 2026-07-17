@@ -18,6 +18,7 @@ Complements [ARCHITECTURE.md](ARCHITECTURE.md) (what the app is) and [IMPLEMENTA
 ## Constraints & context
 
 - Stack: **Expo + dev client**, `react-native-tvos` (TV support), TypeScript.
+- **Player:** `expo-video` via the official Expo config plugin in `app.json` — [ADR 0006](adr/0006-player-expo-video.md). Adding or upgrading it requires a **native rebuild** (`npm run prebuild:tv` then `npm run ios` / EAS), not a JS-only reload.
 - Targets: **Apple TV (tvOS)** and **Android TV**.
 - tvOS builds require **macOS + Xcode + an Apple Developer Program membership** ($99/yr) and code-signing assets. Android has no such gate.
 - Apple TV **cannot** install arbitrary APK-style files: apps arrive via **Xcode/Apple Configurator (dev-signed)** or **TestFlight**. Android TV installs a plain **APK** (`adb install`, file manager, or a distribution service).

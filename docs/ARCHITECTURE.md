@@ -404,7 +404,7 @@ interface StreamDescriptor {
 
 Defaults / decisions to confirm:
 
-- **Player module:** a custom Expo native module wrapping platform players (AVPlayer/ExoPlayer) or an existing RN video lib with tvOS + Android TV DRM support — **subject to a DRM spike**.
+- **Player module:** **`expo-video`** (AVPlayer / ExoPlayer), host-owned chrome — [ADR 0006](adr/0006-player-expo-video.md). FairPlay/Widevine still need a device spike (Phase 2b). HLS playlist rewrite for plugins is a host transport concern (local proxy / `VideoAssetTransportProvider`), not baked into the player package.
 - **Stream types (default):** HLS + DASH + progressive MP4.
 - **Quality:** ABR auto with an optional manual picker.
 - **Live (default):** live-edge in v1; DVR/start-over later.
@@ -492,7 +492,7 @@ flowchart TB
 - **Focus / spatial navigation:** native `react-native-tvos` primitives (`TVFocusGuideView`, Pressable focus), wrapped in `src/platform/focus/` and presentation TV components ([ADR 0004](adr/0004-tv-ui-focus.md)).
 - **Input:** D-pad first; gamepad/mouse on Android TV is a nice-to-have.
 - **Platform integrations** (top shelf, Leanback recommendations): deferred past v1.
-- **Expo:** `expo-dev-client` with a custom native module for the DRM player is the assumed path.
+- **Expo:** `expo-dev-client` + `expo-video` config plugin (prebuild) — [ADR 0006](adr/0006-player-expo-video.md).
 
 ---
 
@@ -543,13 +543,13 @@ flowchart LR
 
 Decisions above marked **(default)** are provisional. These warrant an ADR under `docs/adr/` when tackled. Priority order:
 
-1. **DRM player** — exact native module / library for Widevine + FairPlay on tvOS + Android TV under Expo.
+1. **DRM player spike** — prove FairPlay + Widevine on device with `expo-video` ([ADR 0006](adr/0006-player-expo-video.md)); fall back only if the spike fails.
 2. **Hot-update & store policy** — what OTA plugin delivery is acceptable on the App Store / Play.
 3. **Repo index & signing format** — finalize `index.json` schema + Ed25519 signing/verification flow.
 4. **Plugin runtime isolation** — upgrade from in-process if crash containment is insufficient ([ADR 0001](adr/0001-plugin-contract-ts-interfaces.md) documents v1 choice).
 5. **Media aggregation** — cross-provider dedup/matching strategy and identifiers.
 6. **Continue-watching reconciliation** — precise merge semantics across host and plugins.
 
-**Accepted ADRs:** [0001](adr/0001-plugin-contract-ts-interfaces.md) (plugin contract & runtime), [0002](adr/0002-multi-repo-layout.md) (multi-repo layout), [0003](adr/0003-app-versioning.md) (host versioning), [0004](adr/0004-tv-ui-focus.md) (TV focus).
+**Accepted ADRs:** [0001](adr/0001-plugin-contract-ts-interfaces.md) (plugin contract & runtime), [0002](adr/0002-multi-repo-layout.md) (multi-repo layout), [0003](adr/0003-app-versioning.md) (host versioning), [0004](adr/0004-tv-ui-focus.md) (TV focus), [0006](adr/0006-player-expo-video.md) (player shell).
 
 Each resolved ADR should update the relevant section here and the [implementation plan](IMPLEMENTATION-PLAN.md).

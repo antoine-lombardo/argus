@@ -29,3 +29,5 @@ Link accepted ADRs from [../ARCHITECTURE.md](../ARCHITECTURE.md), [../PLUGIN-SYS
 | [0002](0002-multi-repo-layout.md) | Multi-repo layout from the start |
 | [0003](0003-app-versioning.md) | Host app versioning — Changesets for version, EAS for build number |
 | [0004](0004-tv-ui-focus.md) | TV UI focus — native react-native-tvos primitives |
+| [0005](0005-player-react-native-video.md) | ~~Player shell — react-native-video v7~~ (superseded by 0006) |
+| [0006](0006-player-expo-video.md) | Player shell — expo-video |

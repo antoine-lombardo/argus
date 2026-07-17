@@ -19,10 +19,8 @@ function isActiveRoute(pathname: string, href: string) {
 }
 
 /**
- * Two FocusGuides + autoFocus (standard RN-TV pattern):
- * - Right from sidebar → content guide → first focusable (top-left)
- * - Left from content → sidebar guide → last focused nav row
- * @see https://medium.com/@sofialz/understanding-focus-on-react-native-the-easy-way-d2646b0d2022
+ * Sidebar + content Slot for top-level tabs.
+ * Full-screen routes (Detail) live on the root Stack above this shell.
  */
 export default function AppShell() {
   const theme = useTheme();

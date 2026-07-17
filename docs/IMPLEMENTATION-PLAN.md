@@ -15,8 +15,8 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 | -------------- | --------------------------------------------------------- |
 | Current phase  | Phase 2 in progress (2c screens)                          |
 | Last updated   | 2026-07-17                                                |
-| Next milestone | Search screen; Detail / Player; DRM spike (2b)            |
-| Blockers       | None — sidebar shell + Home fixture rows on Apple TV path |
+| Next milestone | Rebuild native for expo-video; verify clear HLS; Library / Settings |
+| Blockers       | Native rebuild required after switching to `expo-video` |
 
 ---
 
@@ -67,18 +67,18 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 
 ### 2b. DRM spike (high risk — do early)
 
-- [ ] Spike in-app playback with DRM on **tvOS** (FairPlay) and **Android TV** (Widevine)
-- [ ] Evaluate: existing RN video lib vs custom Expo native module
-- [ ] Play a clear HLS stream end-to-end; then a DRM-protected test stream
-- [ ] Write ADR: **DRM player module** (record what works / limits / store implications)
+- [~] Spike in-app playback with DRM on **tvOS** (FairPlay) and **Android TV** (Widevine) — library chosen ([ADR 0006](adr/0006-player-expo-video.md)); device DRM streams still todo
+- [x] Evaluate: existing RN video lib vs custom Expo native module — chose `expo-video` over RNV v7 (not TV-ready) / Bitmovin / custom module ([ADR 0006](adr/0006-player-expo-video.md); supersedes [0005](adr/0005-player-react-native-video.md)) (2026-07-17)
+- [~] Play a clear HLS stream end-to-end; then a DRM-protected test stream — clear HLS Player screen wired; needs native rebuild + device verify
+- [x] Write ADR: **DRM player module** — [ADR 0006](adr/0006-player-expo-video.md) (library lock; DRM spike remains)
 
 ### 2c. Screens (fixtures)
 
 - [x] Sidebar/rail navigation shell with focus management — dual `FocusGuide autoFocus` (sidebar + content); Up/Down changes route on focus; Right/Left handoff verified on Apple TV (2026-07-17)
 - [x] Home screen (rows from fixtures) — `homeRows` / `MediaItem` from `@argus-tv/plugin-sdk`; Continue / Popular / Live rails (2026-07-17)
-- [ ] Search screen (on-screen keyboard + results grid, debounced)
-- [ ] Detail screen (unified layout for movie / episode / live event)
-- [ ] Player screen wired to the player shell (clear stream first)
+- [x] Search screen (on-screen keyboard + results grid, debounced) — `TvKeyboard` + fixture `searchFixtures`; 300ms debounce via `useSearchStore` (2026-07-17)
+- [x] Detail screen (unified layout for movie / episode / live event) — `/detail` + `getFixtureDetails`; Home/Search posters navigate; Play stashes id in `usePlayerStore` (2026-07-17)
+- [x] Player screen wired to the player shell (clear stream first) — `/player` + `expo-video` + fixture HLS; Detail Play / episodes push player ([ADR 0006](adr/0006-player-expo-video.md)) (2026-07-17)
 - [ ] Library screen (favorites / continue watching from local store)
 - [ ] Settings screen (global + placeholder per-plugin)
 
@@ -221,6 +221,10 @@ Record confirmations/changes to `(default)` decisions here; link the ADR.
 | 2026-07-17 | tvOS TestFlight delivery via `xcrun altool -t appletvos` (not `eas submit`, which mis-tags tvOS as iOS → ITMS-90508/90545/90713/90039); CI `submit-tvos` job on `macos-latest` + `ASC_API_KEY_*` secrets | — | Proven by re-uploading rejected build 10; Android still uses `eas submit` |
 | 2026-07-17 | Phase 2c: Netflix-style `AppShell` — dual `FocusGuide autoFocus` (sidebar + content); Up/Down navigates on focus; no nextFocus/ref wiring. Verified on Apple TV | [0004](adr/0004-tv-ui-focus.md) | Next: Home fixture rows |
 | 2026-07-17 | Home fixture rows: `@argus-tv/plugin-sdk` `Row`/`MediaItem` fixtures + Rail titles + Poster artwork (`expo-image`) | — | Next: Search screen |
+| 2026-07-17 | Search: in-app `TvKeyboard` + debounced fixture catalog filter + `PosterGrid` (no native searchable module yet) | — | Next: Detail screen |
+| 2026-07-17 | Detail: unified `/detail` for movie/series/episode/live fixtures (`MediaDetails`); Play → player store until Player screen | — | Next: Player screen |
+| 2026-07-17 | Root `Stack`: `(shell)` (sidebar + tabs) stays mounted under full-screen `detail`; Back pops Detail over the whole UI including sidenav | [0004](adr/0004-tv-ui-focus.md) | Avoids remount/scroll jump on Back |
+| 2026-07-17 | Player: briefly tried RNV v7; **not TV-ready** (podspecs `:ios` only) — superseded by `expo-video` + host chrome; clear HLS fixtures | [0005](adr/0005-player-react-native-video.md) → [0006](adr/0006-player-expo-video.md) | Rebuild native (`prebuild:tv` / `run:ios`); DRM + HLS rewrite transport later |
 
 ---
 

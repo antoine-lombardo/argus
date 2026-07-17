@@ -16,6 +16,7 @@ type PosterProps = {
   /** Small corner badge (e.g. live status). */
   badge?: string;
   onSelect?: () => void;
+  onFocus?: () => void;
   style?: StyleProp<ViewStyle>;
   hasTVPreferredFocus?: boolean;
 };
@@ -29,6 +30,7 @@ export function Poster({
   imageUrl,
   badge,
   onSelect,
+  onFocus,
   style,
   hasTVPreferredFocus,
 }: PosterProps) {
@@ -40,6 +42,7 @@ export function Poster({
   return (
     <Focusable
       onSelect={onSelect}
+      onFocus={onFocus}
       hasTVPreferredFocus={hasTVPreferredFocus}
       style={({ focused }) => [
         {

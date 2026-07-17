@@ -5,4 +5,12 @@
  * land here until real plugins feed the same shapes.
  */
 
+export { fixtureDetails, getFixtureDetails } from './fixtures/details';
 export { fixtureMedia, homeRows } from './fixtures/home-rows';
+export {
+  CLEAR_HLS_URL,
+  getFixturePlayback,
+  playbackLabel,
+} from './fixtures/playback';
+export { searchCatalog, searchFixtures } from './fixtures/search';
+export { mediaIdKey, parseMediaIdKey } from './media-id';
