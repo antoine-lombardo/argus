@@ -404,14 +404,14 @@ interface StreamDescriptor {
 
 Defaults / decisions to confirm:
 
-- **Player module:** **`expo-video`** (AVPlayer / ExoPlayer), host-owned chrome — [ADR 0006](adr/0006-player-expo-video.md). FairPlay/Widevine still need a device spike (Phase 2b). HLS playlist rewrite for plugins is a host transport concern (local proxy / `VideoAssetTransportProvider`), not baked into the player package.
+- **Player module:** **`expo-video`** (AVPlayer / ExoPlayer), host-owned chrome — [ADR 0006](adr/0006-player-expo-video.md). FairPlay + Widevine device spike **done** (Phase 2b, 2026-07-17). HLS playlist rewrite for plugins is a host transport concern (local proxy / `VideoAssetTransportProvider`), not baked into the player package.
 - **Stream types (default):** HLS + DASH + progressive MP4.
 - **Quality:** ABR auto with an optional manual picker.
 - **Live (default):** live-edge in v1; DVR/start-over later.
 - **DRM failure (default):** show a clear error; deep-link fallback only if the plugin advertises `deepLink`.
 - **Player features v1 (default):** resume position, next episode, subtitle + audio track selection. Skip-intro deferred.
 
-> DRM on tvOS + Android TV under Expo is the highest-risk area. It gets an early spike ([plan phase 2b](IMPLEMENTATION-PLAN.md)).
+> DRM on tvOS + Android TV under Expo was the highest-risk area; the early spike ([plan phase 2b](IMPLEMENTATION-PLAN.md)) is complete — FairPlay + Widevine play on device via `expo-video` ([ADR 0006](adr/0006-player-expo-video.md)).
 
 ---
 
@@ -543,7 +543,7 @@ flowchart LR
 
 Decisions above marked **(default)** are provisional. These warrant an ADR under `docs/adr/` when tackled. Priority order:
 
-1. **DRM player spike** — prove FairPlay + Widevine on device with `expo-video` ([ADR 0006](adr/0006-player-expo-video.md)); fall back only if the spike fails.
+1. ~~**DRM player spike**~~ — FairPlay + Widevine proven on device with `expo-video` ([ADR 0006](adr/0006-player-expo-video.md)) (2026-07-17).
 2. **Hot-update & store policy** — what OTA plugin delivery is acceptable on the App Store / Play.
 3. **Repo index & signing format** — finalize `index.json` schema + Ed25519 signing/verification flow.
 4. **Plugin runtime isolation** — upgrade from in-process if crash containment is insufficient ([ADR 0001](adr/0001-plugin-contract-ts-interfaces.md) documents v1 choice).

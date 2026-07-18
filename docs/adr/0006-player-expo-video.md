@@ -26,7 +26,7 @@ Options compared:
 1. **Player library:** **`expo-video`** (SDK 57 line) with the official Expo config plugin in `app.json`.
 2. **UI:** host-owned chrome only — `nativeControls={false}` on `VideoView`.
 3. **HLS rewrite (plugins):** host-owned transport (local HLS proxy and/or `VideoAssetTransportProvider` + `AVAssetResourceLoaderDelegate`), not baked into a third-party player plugin. `StreamDescriptor.url` remains what the player plays (often a proxy URL).
-4. **DRM spike (2b)** still required on physical devices; this ADR locks the player library for TV, not “DRM is done.”
+4. **DRM spike (2b)** required on physical devices at decision time; **completed 2026-07-17** (FairPlay + Widevine). This ADR still locks the player library for TV.
 
 ## Consequences
 
@@ -35,17 +35,19 @@ Options compared:
 - Official tvOS support; no Nitro / RNV tvOS podspec patches.
 - Custom chrome and clear HLS path for Phase 2c.
 - Documented iOS hook for playlist/URL preprocessing when plugins need segment rewrite.
+- Device spike succeeded without a custom native DRM module.
 
 **Negative / risks**
 
-- FairPlay `getLicense`-style and Android ExoPlayer factory depth are thinner than RNV v7 — Phase 2b may need a small host native module or revisit if the spike fails.
+- FairPlay `getLicense`-style and Android ExoPlayer factory depth are thinner than RNV v7 — revisit only if a real provider needs custom license shaping beyond headers/`contentId`.
 - Advanced iOS transport (`VideoAssetTransportProvider`) is native Swift; Android rewrite still needs an ExoPlayer / proxy path.
 - Adding or upgrading `expo-video` requires a **native rebuild** (`npm run prebuild:tv` then `npm run ios` / EAS).
+- Some public FairPlay vectors (e.g. Axinom) fail with opaque `DRMLoadException`; fixture choice matters (`contentId` for EZDRM `skd://host/;uuid`).
 
 **Follow-up**
 
 - ~~Phase 2c: clear HLS Player screen consuming fixture `StreamDescriptor`.~~
+- ~~Phase 2b DRM spike:~~ host maps `StreamDescriptor.drm` → expo-video `VideoSource.drm` via `toVideoSource` (`licenseUrl` → `licenseServer`). Verified fixtures:
+  - **Widevine (Android TV, 2026-07-17):** Google Tears of Steel DASH + Widevine UAT proxy (`video_id=2015_tears`).
+  - **FairPlay (physical ATV, 2026-07-17):** EZDRM public HLS (`na-fps.ezdrm.com` Big Buck Bunny) + `eleisure.cer` + license UUID; `contentId` = asset UUID. Gated to Apple device (`expo-device` `isDevice`).
 - Later: host HLS proxy / transport API for plugin playlist rewrite.
-- Phase 2b (in progress): host maps `StreamDescriptor.drm` → expo-video `VideoSource.drm` via `toVideoSource` (`licenseUrl` → `licenseServer`). Home **DRM spike** rail:
-  - **Widevine:** Android only (not Apple). Google Tears of Steel DASH + Widevine UAT proxy (`video_id=2015_tears`) — verify on Android TV / emulator.
-  - **FairPlay:** Apple **device** only — Simulator crashes if `AVContentKeySession` is created; we gate with `expo-device` `isDevice` and never mount the player when blocked (also avoids clear-HLS audio leak from a placeholder source). **Verified 2026-07-17** on physical ATV with EZDRM public HLS (`na-fps.ezdrm.com` Big Buck Bunny) + `eleisure.cer` + license UUID; `contentId` = asset UUID (EZDRM `skd://host/;uuid`). Axinom vectors failed with opaque `DRMLoadException` (stream/token path, not expo-video FairPlay itself).
