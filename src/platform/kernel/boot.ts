@@ -2,14 +2,18 @@
  * Boot plugins.
  *
  * Load mode (`EXPO_PUBLIC_ARGUS_PLUGIN_LOAD`, default `auto`):
- * - `auto`: `__DEV__` → Metro HMR example when present; else store/seed
+ * - `auto`: `__DEV__` → Metro HMR plugins when present; else plugin store / seed
  * - `hmr`: prefer Metro HMR (falls back to store)
  * - `store`: always plugin store / seed (use this to test prod-like loading in dev)
  *
- * See `src/platform/plugins/load-mode.ts`.
+ * HMR package list = official example + optional gitignored `dev-plugins.local.json`
+ * (Metro writes `dev-hmr-registry.generated.js`).
+ *
+ * See `src/platform/plugins/load-mode.ts` and `docs/PLUGIN-AUTHORING.md`.
  */
 import type { ArgusPlugin } from '@argus-tv/plugin-sdk';
 
+import { useReposStore } from '@/application/stores/repos-store';
 import { pluginKernel } from '@/platform/kernel';
 import { getPluginLoadMode, shouldTryDevHmr } from '@/platform/plugins/load-mode';
 import {
@@ -17,9 +21,15 @@ import {
   listInstalled,
   loadPluginFromDirectory,
   pluginDirPath,
+  resolvePluginRepoIndexUrl,
 } from '@/platform/plugins/store';
+import { syncPluginsWithRepos } from '@/platform/repos/plugin-gate';
 
 let bootPromise: Promise<void> | null = null;
+
+type HmrRegistry = {
+  modules: Array<{ metroName: string; load: () => unknown }>;
+};
 
 function resolveDefault(mod: unknown): ArgusPlugin {
   const m = mod as ArgusPlugin | { default: ArgusPlugin };
@@ -29,25 +39,52 @@ function resolveDefault(mod: unknown): ArgusPlugin {
   return m as ArgusPlugin;
 }
 
-async function bootDevExample(): Promise<boolean> {
-  if (!shouldTryDevHmr()) return false;
+function loadHmrRegistry(): HmrRegistry {
   try {
+    // Generated when Metro starts (from gitignored dev-plugins.local.json).
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require('@argus-dev/plugin-example');
-    const plugin = resolveDefault(mod);
-    if (!plugin?.manifest) return false;
-    await pluginKernel.replaceOrRegister(plugin);
+    return require('../plugins/dev-hmr-registry.generated.js') as HmrRegistry;
+  } catch {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require('../plugins/dev-hmr-registry.fallback.js') as HmrRegistry;
+  }
+}
+
+/**
+ * Register every Metro HMR plugin (example + gitignored local extras).
+ * Returns true if at least one registered (skip store boot in that case).
+ */
+async function bootDevHmrPlugins(): Promise<boolean> {
+  if (!shouldTryDevHmr()) return false;
+
+  const registry = loadHmrRegistry();
+  let registered = 0;
+
+  for (const entry of registry.modules) {
+    try {
+      const plugin = resolveDefault(entry.load());
+      if (!plugin?.manifest) continue;
+      // Local HMR plugins are not gated by remote repos.
+      await pluginKernel.replaceOrRegister(plugin, { repoIndexUrl: null });
+      registered += 1;
+      console.info(
+        `[boot] plugin load=hmr (${getPluginLoadMode()}) id=${plugin.manifest.id} via ${entry.metroName}`,
+      );
+    } catch (err) {
+      console.info(
+        `[boot] HMR plugin unavailable (${entry.metroName})`,
+        err instanceof Error ? err.message : err,
+      );
+    }
+  }
+
+  if (registered === 0) {
     console.info(
-      `[boot] plugin load=hmr (${getPluginLoadMode()}) id=${plugin.manifest.id}`,
-    );
-    return true;
-  } catch (err) {
-    console.info(
-      '[boot] Dev example unavailable — using plugin store / seed. Clone argus-plugins beside argus for HMR.',
-      err instanceof Error ? err.message : err,
+      '[boot] No HMR plugins — add dev-plugins.local.json (see .example) or use plugin store mode.',
     );
     return false;
   }
+  return true;
 }
 
 async function bootFromStore(): Promise<void> {
@@ -57,11 +94,20 @@ async function bootFromStore(): Promise<void> {
     `[boot] plugin load=store (${getPluginLoadMode()}) installed=${installed.length}`,
   );
   for (const record of installed) {
-    if (!record.enabled) continue;
-    if (pluginKernel.getState(record.id)) continue;
+    const repoIndexUrl = resolvePluginRepoIndexUrl(record);
+    if (pluginKernel.getState(record.id)) {
+      // Already registered (e.g. HMR) — sync enable flag from store.
+      if (record.enabled) await pluginKernel.enable(record.id);
+      else await pluginKernel.disable(record.id, 'Disabled in settings');
+      continue;
+    }
     try {
       const { plugin } = await loadPluginFromDirectory(pluginDirPath(record));
-      await pluginKernel.registerPlugin(plugin);
+      await pluginKernel.registerPlugin(plugin, { repoIndexUrl });
+      // registerPlugin enables; honor persisted disable.
+      if (!record.enabled) {
+        await pluginKernel.disable(record.id, 'Disabled in settings');
+      }
     } catch (err) {
       console.error(`[boot] failed to load ${record.id}`, err);
     }
@@ -69,10 +115,12 @@ async function bootFromStore(): Promise<void> {
 }
 
 async function runBoot(): Promise<void> {
-  const usedDev = await bootDevExample();
+  const usedDev = await bootDevHmrPlugins();
   if (!usedDev) {
     await bootFromStore();
   }
+  await useReposStore.getState().hydrate();
+  await syncPluginsWithRepos(useReposStore.getState().repos);
 }
 
 export function bootPlugins(): Promise<void> {

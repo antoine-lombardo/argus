@@ -43,6 +43,13 @@ export default function RootLayout() {
         <Stack.Screen name="(shell)" />
         <Stack.Screen name="detail" />
         <Stack.Screen name="player" />
+        <Stack.Screen name="repo-settings" />
+        <Stack.Screen name="plugin-settings" />
+        <Stack.Screen name="plugin-catalog" />
+        <Stack.Screen
+          name="plugin-catalog-item"
+          options={{ animation: 'slide_from_right' }}
+        />
       </Stack>
     </ThemeProvider>
   );

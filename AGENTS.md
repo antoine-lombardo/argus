@@ -28,7 +28,7 @@ Argus spans separate repos ([ADR 0002](docs/adr/0002-multi-repo-layout.md)):
 | Repo                | Purpose                                                         |
 | ------------------- | --------------------------------------------------------------- |
 | `argus` (this repo) | Host TV app + product/process docs                              |
-| `argus-plugin-sdk`  | The plugin contract, published to npm as `@argus-tv/plugin-sdk` |
+| `argus-plugin-sdk`  | The plugin contract (`@argus-tv/plugin-sdk`). Local: `file:` sibling; published to npm for third parties. |
 | `argus-plugins`     | Official + reference plugins                                    |
 | `argus-repo-index`  | Official repo index + artifacts                                 |
 

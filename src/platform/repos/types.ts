@@ -58,11 +58,39 @@ export type RepoPreference = {
   indexUrl: string;
   /** Display name from last fetch (optional until Phase 4 fetch). */
   name?: string;
+  /** When false, host ignores this repo for updates/installs. */
+  enabled: boolean;
   /** `main` or an id from `channels[]`. */
   selectedChannelId: SelectedChannelId;
   /** Cached channel directory from last main-index fetch. */
   channels?: RepoChannelRef[];
+  /**
+   * `builtin` = shipped default (official). `user` = added on device / local seed.
+   * User repos are never committed — only on-device prefs (or gitignored local env).
+   */
+  source?: 'builtin' | 'user';
 };
+
+export function channelDisplayName(
+  selected: SelectedChannelId,
+  channels: RepoChannelRef[] | undefined,
+): string {
+  if (selected === MAIN_CHANNEL_ID) return 'Main';
+  const hit = channels?.find((c) => c.id === selected);
+  return hit?.name ?? selected;
+}
+
+export function nextChannelId(
+  selected: SelectedChannelId,
+  channels: RepoChannelRef[] | undefined,
+): SelectedChannelId {
+  const ids: SelectedChannelId[] = [
+    MAIN_CHANNEL_ID,
+    ...(channels ?? []).map((c) => c.id),
+  ];
+  const i = ids.indexOf(selected);
+  return ids[(i + 1) % ids.length] ?? MAIN_CHANNEL_ID;
+}
 
 /**
  * True if `candidate` is newer than `installed` using (version, build).

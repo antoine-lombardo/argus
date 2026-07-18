@@ -4,6 +4,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 
 import { assertManifest } from '@/platform/kernel/manifest';
 import { evaluatePluginBundle } from '@/platform/plugins/load-cjs';
+import { OFFICIAL_REPO_INDEX_URL } from '@/platform/repos/constants';
 
 export { evaluatePluginBundle } from '@/platform/plugins/load-cjs';
 
@@ -18,10 +19,14 @@ export type InstalledPluginRecord = {
   dirName: string;
   enabled: boolean;
   source: 'seed' | 'repo' | 'sideload' | 'dev';
+  /** Origin repo index URL; seed → official. Sideload/dev may omit. */
+  repoIndexUrl?: string;
 };
 
 type RegistryFile = {
   plugins: InstalledPluginRecord[];
+  /** After the user uninstalls, never auto-copy the bundled seed again. */
+  skipAutoSeed?: boolean;
 };
 
 async function ensureDir(path: string) {
@@ -48,6 +53,36 @@ export async function listInstalled(): Promise<InstalledPluginRecord[]> {
   return (await readRegistry()).plugins;
 }
 
+/** Resolve origin repo for gating (seed defaults to official). */
+export function resolvePluginRepoIndexUrl(
+  record: InstalledPluginRecord,
+): string | null {
+  if (record.repoIndexUrl) return record.repoIndexUrl;
+  if (record.source === 'seed') return OFFICIAL_REPO_INDEX_URL;
+  return null;
+}
+
+/** Persist enable/disable for a store-installed plugin (no-op if not in registry). */
+export async function setPluginEnabled(id: string, enabled: boolean): Promise<void> {
+  const reg = await readRegistry();
+  const hit = reg.plugins.find((p) => p.id === id);
+  if (!hit) return;
+  hit.enabled = enabled;
+  await writeRegistry(reg);
+}
+
+/** Remove plugin files + registry entry. Does not touch the kernel. */
+export async function uninstallPlugin(id: string): Promise<void> {
+  const reg = await readRegistry();
+  const hit = reg.plugins.find((p) => p.id === id);
+  if (hit) {
+    await FileSystem.deleteAsync(pluginDirPath(hit), { idempotent: true });
+  }
+  reg.plugins = reg.plugins.filter((p) => p.id !== id);
+  reg.skipAutoSeed = true;
+  await writeRegistry(reg);
+}
+
 export async function loadPluginFromDirectory(
   absDir: string,
 ): Promise<{ plugin: ArgusPlugin; manifest: PluginManifest }> {
@@ -68,6 +103,7 @@ export async function loadPluginFromDirectory(
 export async function installFromDirectory(
   absDir: string,
   source: InstalledPluginRecord['source'],
+  opts?: { repoIndexUrl?: string },
 ): Promise<InstalledPluginRecord> {
   const { manifest } = await loadPluginFromDirectory(absDir);
   const dirName = manifest.id.replace(/[^a-zA-Z0-9._-]/g, '_');
@@ -81,6 +117,10 @@ export async function installFromDirectory(
   await FileSystem.copyAsync({ from: `${absDir}/manifest.json`, to: `${dest}/manifest.json` });
   await FileSystem.copyAsync({ from: `${absDir}/index.js`, to: `${dest}/index.js` });
 
+  const repoIndexUrl =
+    opts?.repoIndexUrl ??
+    (source === 'seed' ? OFFICIAL_REPO_INDEX_URL : undefined);
+
   const record: InstalledPluginRecord = {
     id: manifest.id,
     version: manifest.version,
@@ -88,6 +128,7 @@ export async function installFromDirectory(
     dirName,
     enabled: true,
     source,
+    ...(repoIndexUrl ? { repoIndexUrl } : {}),
   };
   const reg = await readRegistry();
   reg.plugins = reg.plugins.filter((p) => p.id !== record.id);
@@ -99,11 +140,34 @@ export async function installFromDirectory(
 /**
  * Copy the bundled seed plugin (official example) into the plugin store.
  * Seed files live under `assets/plugins/argus.example/` (synced from argus-plugins).
+ * Reinstalls if the on-disk manifest fails validation (e.g. missing `build`).
  */
 export async function ensureSeedPluginInstalled(): Promise<InstalledPluginRecord | null> {
   const reg = await readRegistry();
+  if (reg.skipAutoSeed) return null;
+
   const existing = reg.plugins.find((p) => p.id === 'argus.example');
-  if (existing) return existing;
+  if (existing) {
+    try {
+      const raw = await FileSystem.readAsStringAsync(
+        `${pluginDirPath(existing)}/manifest.json`,
+      );
+      assertManifest(JSON.parse(raw));
+      if (!existing.repoIndexUrl) {
+        existing.repoIndexUrl = OFFICIAL_REPO_INDEX_URL;
+        await writeRegistry(reg);
+      }
+      return existing;
+    } catch (err) {
+      console.warn(
+        '[plugin-store] seed manifest stale — reinstalling',
+        err instanceof Error ? err.message : err,
+      );
+      reg.plugins = reg.plugins.filter((p) => p.id !== 'argus.example');
+      await writeRegistry(reg);
+      await FileSystem.deleteAsync(pluginDirPath(existing), { idempotent: true });
+    }
+  }
 
   try {
     // Bundled as Metro assets (not executed as JS).

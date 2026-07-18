@@ -38,6 +38,11 @@ const METHOD_CAPABILITY: Record<string, Capability> = {
   reportProgress: 'library',
 };
 
+export type RegisterPluginOptions = {
+  /** Origin repo index URL; used to hide/disable when that repo is off. */
+  repoIndexUrl?: string | null;
+};
+
 export type PluginRuntimeState = {
   id: string;
   name: string;
@@ -48,6 +53,8 @@ export type PluginRuntimeState = {
   consecutiveFailures: number;
   disabledReason: string | null;
   lastError: string | null;
+  /** Origin repo; null = not gated by repo enable (e.g. sideload). */
+  repoIndexUrl: string | null;
 };
 
 type Registered = {
@@ -88,7 +95,10 @@ class PluginKernel {
    * Register a pre-built `ArgusPlugin` (Phase 3: static import;
    * Phase 4: same entry after loading from disk).
    */
-  async registerPlugin(plugin: ArgusPlugin): Promise<void> {
+  async registerPlugin(
+    plugin: ArgusPlugin,
+    opts?: RegisterPluginOptions,
+  ): Promise<void> {
     const manifest = assertManifest(plugin.manifest);
     if (manifest.apiVersion !== API_VERSION) {
       throw new ArgusError(
@@ -113,6 +123,7 @@ class PluginKernel {
         consecutiveFailures: 0,
         disabledReason: null,
         lastError: null,
+        repoIndexUrl: opts?.repoIndexUrl ?? null,
       },
     };
     this.plugins.set(manifest.id, registered);
@@ -150,12 +161,24 @@ class PluginKernel {
   /**
    * Register or replace (dev HMR / reinstall). Same id replaces the old instance.
    */
-  async replaceOrRegister(plugin: ArgusPlugin): Promise<void> {
+  async replaceOrRegister(
+    plugin: ArgusPlugin,
+    opts?: RegisterPluginOptions,
+  ): Promise<void> {
     const id = plugin.manifest?.id;
     if (id && this.plugins.has(id)) {
       await this.unregisterPlugin(id);
     }
-    await this.registerPlugin(plugin);
+    await this.registerPlugin(plugin, opts);
+  }
+
+  /** Patch origin repo after register (e.g. backfill from store registry). */
+  setRepoIndexUrl(id: string, repoIndexUrl: string | null): void {
+    const r = this.plugins.get(id);
+    if (!r) return;
+    if (r.state.repoIndexUrl === repoIndexUrl) return;
+    r.state.repoIndexUrl = repoIndexUrl;
+    this.emit();
   }
 
   async enable(id: string): Promise<void> {

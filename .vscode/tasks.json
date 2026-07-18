@@ -5,6 +5,7 @@
       "label": "Start Metro",
       "type": "shell",
       "command": "npm run start",
+      "hide": true,
       "isBackground": true,
       "problemMatcher": {
         "owner": "expo",
@@ -21,46 +22,36 @@
         "reveal": "always",
         "panel": "dedicated",
         "focus": false
+      }
+    },
+    {
+      "label": "Start Metro (plugin store)",
+      "type": "shell",
+      "command": "npm run start:store",
+      "hide": true,
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "expo-store",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "(Waiting on|Metro waiting on|Logs for your project)"
+        }
       },
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      }
-    },
-    {
-      "label": "Prebuild",
-      "type": "npm",
-      "script": "prebuild:tv",
-      "problemMatcher": [],
       "presentation": {
         "reveal": "always",
-        "panel": "shared"
-      }
-    },
-    {
-      "label": "Run Apple TV",
-      "type": "npm",
-      "script": "ios",
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      }
-    },
-    {
-      "label": "Run Android TV",
-      "type": "npm",
-      "script": "android",
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
+        "panel": "dedicated",
+        "focus": false
       }
     },
     {
       "label": "Launch Apple TV",
       "type": "npm",
       "script": "ios:no-bundler",
+      "hide": true,
       "isBackground": true,
       "problemMatcher": {
         "owner": "expo-ios",
@@ -83,6 +74,7 @@
       "label": "Launch Android TV",
       "type": "npm",
       "script": "android:no-bundler",
+      "hide": true,
       "isBackground": true,
       "problemMatcher": {
         "owner": "expo-android",
@@ -102,40 +94,38 @@
       }
     },
     {
-      "label": "Apple TV debug",
-      "dependsOn": ["Start Metro", "Launch Apple TV"],
-      "dependsOrder": "sequence",
+      "label": "Launch both TVs",
+      "dependsOn": ["Launch Apple TV", "Launch Android TV"],
+      "dependsOrder": "parallel",
+      "hide": true,
       "problemMatcher": []
     },
     {
-      "label": "Android TV debug",
-      "dependsOn": ["Start Metro", "Launch Android TV"],
-      "dependsOrder": "sequence",
-      "problemMatcher": []
-    },
-    {
-      "label": "Run Web",
+      "label": "Prebuild",
       "type": "npm",
-      "script": "web",
+      "script": "prebuild:tv",
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",
-        "panel": "dedicated"
+        "panel": "shared"
       }
     },
     {
-      "label": "Typecheck",
-      "type": "npm",
-      "script": "typecheck",
-      "problemMatcher": ["$tsc"],
-      "group": "test"
+      "label": "Run",
+      "dependsOn": ["Start Metro", "Launch both TVs"],
+      "dependsOrder": "sequence",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     },
     {
-      "label": "Lint",
-      "type": "npm",
-      "script": "lint",
+      "label": "Run (plugin store)",
+      "dependsOn": ["Start Metro (plugin store)", "Launch both TVs"],
+      "dependsOrder": "sequence",
       "problemMatcher": [],
-      "group": "test"
+      "group": "build"
     }
   ]
 }

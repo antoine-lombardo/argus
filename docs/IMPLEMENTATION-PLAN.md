@@ -129,15 +129,15 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 - [x] Define `index.json` schema (main channel + dynamic `channels[]`, `(version, build)`, hashes); ADR: [0008](adr/0008-plugin-version-build-channels.md) (2026-07-18)
 - [x] Official publish automation: experimental on `dev` push, promote on `main` merge (`argus-plugins` CI → `argus-repo-index`) (2026-07-18)
 - [x] Host: per-repo channel preference + Settings picker (hidden if one channel; disabled when HMR) (2026-07-18)
+- [x] Host: disabling a repo hides/disables its plugins (seed → official) (2026-07-18)
+- [x] Download `.argus-plugin` artifact; verify sha256; install to store + kernel; uninstall (2026-07-18)
+- [x] Update check + install-from-catalog / install-update UI (2026-07-18)
+- [x] Plugin registry UI: list, enable/disable, install, update, remove, per-plugin settings (2026-07-18)
 - [ ] Repo manager: add/remove repo URLs, fetch + cache index
 - [ ] Version resolution (apiVersion compatibility, platform match, newest by version+build / pinned)
-- [ ] Download `.argus-plugin` artifact; verify sha256
-- [ ] Install to plugin store; register with kernel; uninstall/cleanup
-- [ ] Update check + "update available" flow
 - [ ] Private repo support: user-added URL + optional bearer token
 - [ ] Sideload local `.argus-plugin` (author flow)
 - [ ] Conflict handling (same pluginId from two repos → user picks)
-- [ ] Plugin registry UI: list, enable/disable, install, update, remove, per-plugin settings
 
 **Exit criteria:** user adds a repo URL, installs the stub plugin from it, sees an update when the index bumps, and removes it.
 
@@ -245,6 +245,8 @@ Record confirmations/changes to `(default)` decisions here; link the ADR.
 | 2026-07-18 | Play Console: `net.oxoc.argus` + EAS GSA + first internal release 0.1.0 published to testers | [PACKAGING](PACKAGING.md) | Store details URL/name review on hold; publishing path verified |
 | 2026-07-18 | Phase 3: plugin kernel + host services + example via store/seed; dev HMR via Metro sibling watch; official repo = GitHub Pages | [0007](adr/0007-secure-storage-expo-secure-store.md), [PLUGIN-AUTHORING](PLUGIN-AUTHORING.md) | Permissions honor-system until isolation ADR; Phase 4 repo fetch UI |
 | 2026-07-18 | Plugin `(version, build)` + dynamic channels; CI: experimental on `dev`, promote on `main`; Settings channel picker | [0008](adr/0008-plugin-version-build-channels.md) | Needs `REPO_INDEX_TOKEN` + `dev` branch; SDK changeset for `build` |
+| 2026-07-18 | Host + example use `file:` sibling `@argus-tv/plugin-sdk`; Metro HMR on SDK `src/` (no publish for local contract work) | [PLUGIN-AUTHORING](PLUGIN-AUTHORING.md) | EAS `eas-build-pre-install` clones SDK when sibling missing |
+| 2026-07-18 | Extra local HMR plugins via gitignored `dev-plugins.local.json` (Metro aliases + generated registry) | [PLUGIN-AUTHORING](PLUGIN-AUTHORING.md) | Official example remains default; private sibling packages never committed |
 
 ---
 

@@ -1,0 +1,14 @@
+{
+  "plugins": [
+    {
+      "metroName": "@argus-dev/plugin-example",
+      "root": "../argus-plugins/packages/example",
+      "src": "src"
+    },
+    {
+      "metroName": "@acme/my-provider",
+      "root": "../my-private-plugins/packages/my-provider",
+      "src": "src"
+    }
+  ]
+}

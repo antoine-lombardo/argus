@@ -12,6 +12,10 @@ npm-debug.*
 *.orig.*
 web-build/
 
+# Local-only Metro HMR plugins (private sibling packages — never commit)
+dev-plugins.local.json
+src/platform/plugins/dev-hmr-registry.generated.js
+
 # macOS
 .DS_Store
 

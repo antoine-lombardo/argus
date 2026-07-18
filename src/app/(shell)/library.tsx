@@ -1,10 +1,12 @@
 import type { MediaItem } from '@argus-tv/plugin-sdk';
 import { useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 
 import { useFocusRestoreStore } from '@/application/stores/focus-restore-store';
 import { useLibraryStore } from '@/application/stores/library-store';
-import { mediaIdKey, resolveFixtureMedia } from '@/domain';
+import { usePluginsStore } from '@/application/stores/plugins-store';
+import { mediaIdKey, parseMediaIdKey, resolveFixtureMedia } from '@/domain';
 import { ThemedText } from '@/presentation/components/themed-text';
 import { Poster, Rail, Screen } from '@/presentation/components/tv';
 import { useRestoreFocusKey } from '@/presentation/hooks/use-restore-focus-key';
@@ -19,15 +21,19 @@ function liveBadge(item: MediaItem): string | undefined {
 
 function resolveRow(
   refs: { id: string }[],
+  enabledPluginIds: Set<string>,
 ): { key: string; item: MediaItem }[] {
   return refs.flatMap((ref) => {
+    const mid = parseMediaIdKey(ref.id);
+    if (!mid || !enabledPluginIds.has(mid.pluginId)) return [];
     const item = resolveFixtureMedia(ref.id);
     return item ? [{ key: ref.id, item }] : [];
   });
 }
 
 /**
- * Library — continue watching + favorites from the local library store (fixtures).
+ * Library — continue watching + favorites from the local library store.
+ * Items from disabled plugins are hidden (not deleted).
  */
 export default function LibraryScreen() {
   const router = useRouter();
@@ -36,9 +42,15 @@ export default function LibraryScreen() {
   const { shouldRestore, onRestoredFocus } = useRestoreFocusKey();
   const continueWatching = useLibraryStore((s) => s.continueWatching);
   const favorites = useLibraryStore((s) => s.favorites);
+  const installed = usePluginsStore((s) => s.installed);
 
-  const continueItems = resolveRow(continueWatching);
-  const favoriteItems = resolveRow(favorites);
+  const enabledPluginIds = useMemo(
+    () => new Set(installed.filter((p) => p.enabled).map((p) => p.id)),
+    [installed],
+  );
+
+  const continueItems = resolveRow(continueWatching, enabledPluginIds);
+  const favoriteItems = resolveRow(favorites, enabledPluginIds);
 
   const openDetail = (item: MediaItem) => {
     const key = mediaIdKey(item.id);
@@ -61,7 +73,7 @@ export default function LibraryScreen() {
       >
         <ThemedText type="title">Library</ThemedText>
         <ThemedText themeColor="textSecondary">
-          Saved on this device — plugins can sync later.
+          Saved on this device — content from disabled plugins is hidden.
         </ThemedText>
 
         <Rail title="Continue watching">

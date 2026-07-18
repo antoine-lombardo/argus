@@ -331,8 +331,11 @@ plugin depend on. It lives in the `argus-plugin-sdk` repo and is **types-first**
 - **Dist-tag:** while the contract is `0.x` it publishes under the **`next`**
   tag (`npm i @argus-tv/plugin-sdk@next`); `latest` is reserved for the first
   stable `1.0.0`. Stabilizing means removing `publishConfig.tag` and bumping.
-- **Local iteration:** before/around publishing, the host and plugins can
-  consume the SDK via `npm link` or a git dependency ([ADR 0002](adr/0002-multi-repo-layout.md)).
+- **Local iteration:** host and official example use **`file:`** siblings
+  (`file:../argus-plugin-sdk`, `file:../../../argus-plugin-sdk`) with Metro
+  watching SDK `src/` for HMR — no publish required to try contract changes.
+  Third parties install `@argus-tv/plugin-sdk@next`. EAS clones the SDK in
+  `eas-build-pre-install` when the sibling is missing.
 
 ### Workflows (in `argus-plugin-sdk`)
 

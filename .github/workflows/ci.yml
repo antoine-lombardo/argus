@@ -14,11 +14,26 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - name: Checkout argus
+        uses: actions/checkout@v7
+        with:
+          path: argus
+
+      - name: Checkout argus-plugin-sdk (file: dependency)
+        uses: actions/checkout@v7
+        with:
+          repository: antoine-lombardo/argus-plugin-sdk
+          path: argus-plugin-sdk
+
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - run: npm run typecheck
-      - run: npm run lint
+          cache-dependency-path: argus/package-lock.json
+
+      - name: Install and verify
+        working-directory: argus
+        run: |
+          npm ci
+          npm run typecheck
+          npm run lint

@@ -1,97 +1,65 @@
 import Constants from 'expo-constants';
+import { useRouter } from 'expo-router';
+import { useCallback, useEffect } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { usePluginsStore } from '@/application/stores/plugins-store';
 import { useReposStore } from '@/application/stores/repos-store';
 import { useSettingsStore } from '@/application/stores/settings-store';
-import { Focusable } from '@/platform/focus';
+import { bootPlugins } from '@/platform/kernel/boot';
 import { shouldTryDevHmr } from '@/platform/plugins/load-mode';
+import { isPluginRepoAvailable } from '@/platform/repos/plugin-gate';
 import {
-  MAIN_CHANNEL_ID,
+  channelDisplayName,
   shouldShowChannelPicker,
-  type SelectedChannelId,
 } from '@/platform/repos/types';
 import { BrandLogo } from '@/presentation/components/brand-logo';
+import { SettingsRow } from '@/presentation/components/settings-row';
 import { ThemedText } from '@/presentation/components/themed-text';
-import { Screen } from '@/presentation/components/tv';
+import { Focusable, Screen } from '@/presentation/components/tv';
 import { useScreenDimensions } from '@/presentation/hooks/use-screen-dimensions';
 import { useTheme } from '@/presentation/hooks/use-theme';
 
-type SettingsRowProps = {
-  label: string;
-  value: string;
-  onSelect?: () => void;
-  disabled?: boolean;
-};
-
-function SettingsRow({ label, value, onSelect, disabled }: SettingsRowProps) {
-  const theme = useTheme();
-  const { spacing } = useScreenDimensions();
-
-  return (
-    <Focusable
-      disabled={disabled || !onSelect}
-      onSelect={onSelect ?? (() => {})}
-      style={({ focused }) => ({
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: spacing.three,
-        paddingHorizontal: spacing.four,
-        borderRadius: spacing.two,
-        borderWidth: 3,
-        borderColor: focused && !disabled ? theme.tint : 'transparent',
-        backgroundColor: theme.backgroundElement,
-        opacity: disabled ? 0.5 : 1,
-      })}
-    >
-      <ThemedText type="smallBold">{label}</ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">
-        {value}
-      </ThemedText>
-    </Focusable>
-  );
-}
-
-function channelLabel(
-  selected: SelectedChannelId,
-  channels: { id: string; name: string }[] | undefined,
-): string {
-  if (selected === MAIN_CHANNEL_ID) return 'Main';
-  const hit = channels?.find((c) => c.id === selected);
-  return hit?.name ?? selected;
-}
-
-function cycleChannel(
-  selected: SelectedChannelId,
-  channels: { id: string; name: string }[] | undefined,
-): SelectedChannelId {
-  const ids: SelectedChannelId[] = [
-    MAIN_CHANNEL_ID,
-    ...(channels ?? []).map((c) => c.id),
-  ];
-  const i = ids.indexOf(selected);
-  return ids[(i + 1) % ids.length] ?? MAIN_CHANNEL_ID;
-}
-
 /**
- * Settings — global toggles + per-plugin enable (kernel-backed) + repo channel.
+ * Settings — playback, plugins, repositories.
+ * Metro HMR: same UI; catalog / uninstall / updates / repo toggles disabled.
  */
 export default function SettingsScreen() {
   const theme = useTheme();
   const { spacing } = useScreenDimensions();
+  const router = useRouter();
   const autoplayNext = useSettingsStore((s) => s.autoplayNext);
   const reduceMotion = useSettingsStore((s) => s.reduceMotion);
   const toggleAutoplayNext = useSettingsStore((s) => s.toggleAutoplayNext);
   const toggleReduceMotion = useSettingsStore((s) => s.toggleReduceMotion);
   const installed = usePluginsStore((s) => s.installed);
-  const togglePlugin = usePluginsStore((s) => s.toggle);
+  const registry = usePluginsStore((s) => s.registry);
+  const syncFromKernel = usePluginsStore((s) => s.syncFromKernel);
+  const refreshRegistry = usePluginsStore((s) => s.refreshRegistry);
   const repos = useReposStore((s) => s.repos);
-  const setChannel = useReposStore((s) => s.setChannel);
-
+  const hydrateRepos = useReposStore((s) => s.hydrate);
   const hmrActive = shouldTryDevHmr();
+  const visiblePlugins = installed.filter((p) =>
+    isPluginRepoAvailable(p, repos, registry),
+  );
+
   const appVersion =
     Constants.expoConfig?.version ?? Constants.nativeAppVersion ?? '0.1.0';
+
+  const refresh = useCallback(async () => {
+    await hydrateRepos();
+    try {
+      await bootPlugins();
+    } catch {
+      // Boot errors are logged in bootPlugins; still show whatever is registered.
+    }
+    await refreshRegistry();
+    syncFromKernel();
+  }, [hydrateRepos, refreshRegistry, syncFromKernel]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
   return (
     <Screen style={styles.screen}>
@@ -116,81 +84,78 @@ export default function SettingsScreen() {
         </View>
 
         <View style={{ gap: spacing.two }}>
-          <ThemedText type="subtitle">Plugin repositories</ThemedText>
+          <ThemedText type="subtitle">Plugins</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            Channel picks which catalog index to use for updates. Install from
-            repo comes in Phase 4.
+            Open a plugin to enable or remove it. Plugins from disabled
+            repositories are hidden.
           </ThemedText>
-          {hmrActive ? (
+          {visiblePlugins.length === 0 ? (
             <ThemedText type="small" themeColor="textSecondary">
-              Hot reload is active — repo channel does not apply. Use
-              ios:store / start:store to exercise the store path.
+              No plugins installed from enabled repositories.
             </ThemedText>
-          ) : null}
-          {repos.map((repo) => {
-            const showPicker = shouldShowChannelPicker(repo.channels);
-            if (!showPicker) {
-              return (
-                <SettingsRow
-                  key={repo.indexUrl}
-                  label={repo.name ?? repo.indexUrl}
-                  value="Main"
-                  disabled
-                />
-              );
+          ) : (
+            visiblePlugins.map((plugin) => (
+              <SettingsRow
+                key={plugin.id}
+                label={`${plugin.name} · ${plugin.version}+${plugin.build}`}
+                value={plugin.enabled ? 'On' : 'Off'}
+                onSelect={() => {
+                  router.push({
+                    pathname: '/plugin-settings',
+                    params: { pluginId: plugin.id },
+                  });
+                }}
+              />
+            ))
+          )}
+          <Focusable
+            disabled={hmrActive}
+            onSelect={
+              hmrActive
+                ? undefined
+                : () => {
+                    router.push('/plugin-catalog');
+                  }
             }
+            style={({ focused }) => ({
+              alignSelf: 'flex-start',
+              paddingVertical: spacing.two,
+              paddingHorizontal: spacing.one,
+              borderRadius: spacing.one,
+              borderWidth: 2,
+              borderColor: focused && !hmrActive ? theme.tint : 'transparent',
+              opacity: hmrActive ? 0.45 : 1,
+            })}
+          >
+            <ThemedText type="smallBold" themeColor="tint">
+              Show more
+            </ThemedText>
+          </Focusable>
+        </View>
+
+        <View style={{ gap: spacing.two }}>
+          <ThemedText type="subtitle">Repositories</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            Open a repository to enable it and choose a channel.
+          </ThemedText>
+          {repos.map((repo) => {
+            const channel = shouldShowChannelPicker(repo.channels)
+              ? channelDisplayName(repo.selectedChannelId, repo.channels)
+              : 'Main';
             return (
               <SettingsRow
                 key={repo.indexUrl}
                 label={repo.name ?? 'Repository'}
-                value={channelLabel(repo.selectedChannelId, repo.channels)}
-                disabled={hmrActive}
-                onSelect={
-                  hmrActive
-                    ? undefined
-                    : () =>
-                        setChannel(
-                          repo.indexUrl,
-                          cycleChannel(repo.selectedChannelId, repo.channels),
-                        )
-                }
+                value={repo.enabled ? channel : 'Off'}
+                onSelect={() => {
+                  router.push({
+                    pathname: '/repo-settings',
+                    params: { indexUrl: repo.indexUrl },
+                  });
+                }}
               />
             );
           })}
-        </View>
-
-        <View style={{ gap: spacing.two }}>
-          <ThemedText type="subtitle">Plugins</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            Enable or disable installed plugins.
-          </ThemedText>
-          {installed.length === 0 ? (
-            <ThemedText type="small" themeColor="textSecondary">
-              No plugins registered yet. Open Home to boot the example plugin.
-            </ThemedText>
-          ) : (
-            installed.map((plugin) => (
-              <View key={plugin.id} style={{ gap: spacing.one }}>
-                <SettingsRow
-                  label={`${plugin.name} · ${plugin.version}+${plugin.build}`}
-                  value={plugin.enabled ? 'Enabled' : 'Disabled'}
-                  onSelect={() => {
-                    void togglePlugin(plugin.id);
-                  }}
-                />
-                {plugin.disabledReason ? (
-                  <ThemedText type="small" themeColor="textSecondary">
-                    {plugin.disabledReason}
-                  </ThemedText>
-                ) : null}
-                {plugin.lastError && !plugin.enabled ? (
-                  <ThemedText type="small" themeColor="textSecondary">
-                    Last error: {plugin.lastError}
-                  </ThemedText>
-                ) : null}
-              </View>
-            ))
-          )}
         </View>
 
         <View style={{ gap: spacing.two }}>
