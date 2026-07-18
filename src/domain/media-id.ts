@@ -9,6 +9,15 @@ const MEDIA_TYPES: MediaType[] = [
   'channel',
 ];
 
+/** Build a `MediaId` for a plugin-owned item. */
+export function mediaId(
+  pluginId: string,
+  type: MediaType,
+  providerId: string,
+): MediaId {
+  return { pluginId, type, providerId };
+}
+
 /** Stable string form of a `MediaId` (route params / store keys). */
 export function mediaIdKey(id: MediaId): string {
   return `${id.pluginId}/${id.type}/${id.providerId}`;

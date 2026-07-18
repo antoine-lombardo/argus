@@ -1,24 +1,62 @@
-// Learn more https://docs.expo.io/guides/customizing-metro
+const fs = require('fs');
+const path = require('path');
+
 const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
 
-// When enabled, the optional code below will allow Metro to resolve
-// and bundle source files with TV-specific extensions
-// (e.g., *.ios.tv.tsx, *.android.tv.tsx, *.tv.tsx)
-//
-// Metro will still resolve source files with standard extensions
-// as usual if TV-specific files are not found for a module.
-//
-/*
-if (process.env?.EXPO_TV === '1') {
-  const originalSourceExts = config.resolver.sourceExts;
-  const tvSourceExts = [
-    ...originalSourceExts.map((e) => `tv.${e}`),
-    ...originalSourceExts,
-  ];
-  config.resolver.sourceExts = tvSourceExts;
+const exampleSrc = path.resolve(__dirname, '../argus-plugins/packages/example/src');
+const exampleRoot = path.resolve(__dirname, '../argus-plugins/packages/example');
+const sdkRoot = path.resolve(__dirname, '../argus-plugin-sdk');
+const sdkEntry = path.join(sdkRoot, 'src');
+
+config.watchFolders = [...(config.watchFolders ?? [])];
+config.resolver.extraNodeModules = {
+  ...(config.resolver.extraNodeModules ?? {}),
+};
+
+// Dev HMR: watch sibling example when checked out next to this repo.
+if (fs.existsSync(exampleSrc)) {
+  config.watchFolders.push(exampleRoot);
+  config.resolver.extraNodeModules['@argus-dev/plugin-example'] = exampleSrc;
 }
+
+// Prefer local SDK source when iterating on unpublished contract changes.
+if (fs.existsSync(path.join(sdkRoot, 'package.json'))) {
+  config.watchFolders.push(sdkRoot);
+  config.resolver.extraNodeModules['@argus-tv/plugin-sdk'] = fs.existsSync(sdkEntry)
+    ? sdkEntry
+    : sdkRoot;
+}
+
+/**
+ * Sibling TS packages use ESM-style `./foo.js` imports that map to `foo.ts`.
+ * Remap those relative imports when the `.ts` file exists on disk.
  */
+const defaultResolveRequest = config.resolver.resolveRequest;
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (
+    typeof moduleName === 'string' &&
+    moduleName.startsWith('.') &&
+    moduleName.endsWith('.js') &&
+    context.originModulePath
+  ) {
+    const asTs = path.resolve(
+      path.dirname(context.originModulePath),
+      moduleName.replace(/\.js$/, '.ts'),
+    );
+    if (fs.existsSync(asTs)) {
+      return { type: 'sourceFile', filePath: asTs };
+    }
+  }
+
+  if (defaultResolveRequest) {
+    return defaultResolveRequest(context, moduleName, platform);
+  }
+  return context.resolveRequest(context, moduleName, platform);
+};
+
+// Seed plugin bundle is stored as .txt so Metro treats it as an asset, not JS.
+config.resolver.assetExts = [...new Set([...(config.resolver.assetExts ?? []), 'txt'])];
 
 module.exports = config;

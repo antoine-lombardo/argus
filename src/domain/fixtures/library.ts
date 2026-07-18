@@ -1,28 +1,48 @@
 import type { MediaItem } from '@argus-tv/plugin-sdk';
 
-import { fixtureMedia } from '@/domain/fixtures/home-rows';
-import { mediaIdKey } from '@/domain/media-id';
+import { mediaId, mediaIdKey } from '@/domain/media-id';
 
-/** Continue-watching strip for Phase 2c Library (local store seed). */
+const PLUGIN_ID = 'argus.example';
+
+/** Lightweight seeds until library syncs from plugins (Phase 6). */
+function seed(
+  providerId: string,
+  type: MediaItem['type'],
+  title: string,
+  posterSeed: string,
+): MediaItem {
+  return {
+    id: mediaId(PLUGIN_ID, type, providerId),
+    type,
+    title,
+    artwork: { poster: `https://picsum.photos/seed/argus-${posterSeed}/300/450` },
+    badges: [{ pluginId: PLUGIN_ID, label: 'Example' }],
+  };
+}
+
 export const libraryContinueWatching: MediaItem[] = [
-  fixtureMedia.voltage,
-  fixtureMedia.quartz,
-  fixtureMedia.harbor,
+  seed('voltage', 'episode', 'Voltage S1E3', 'voltage'),
+  seed('quartz', 'series', 'Quartz City', 'quartz'),
+  seed('harbor', 'movie', 'Harbor Lights', 'harbor'),
 ];
 
-/** Favorites strip for Phase 2c Library (local store seed). */
 export const libraryFavorites: MediaItem[] = [
-  fixtureMedia.nebula,
-  fixtureMedia.summit,
-  fixtureMedia.relay,
-  fixtureMedia.orchard,
+  seed('nebula', 'movie', 'Nebula Drift', 'nebula'),
+  seed('summit', 'movie', 'Summit Protocol', 'summit'),
+  seed('relay', 'liveEvent', 'Relay Cup — Finals', 'relay'),
+  seed('orchard', 'series', 'The Orchard', 'orchard'),
 ];
 
 const byKey = new Map<string, MediaItem>(
-  Object.values(fixtureMedia).map((item) => [mediaIdKey(item.id), item]),
+  [...libraryContinueWatching, ...libraryFavorites].map((item) => [
+    mediaIdKey(item.id),
+    item,
+  ]),
 );
 
-/** Resolve a store key back to a fixture `MediaItem`. */
-export function resolveFixtureMedia(key: string): MediaItem | undefined {
+export function resolveLibraryMedia(key: string): MediaItem | undefined {
   return byKey.get(key);
 }
+
+/** @deprecated use resolveLibraryMedia */
+export const resolveFixtureMedia = resolveLibraryMedia;

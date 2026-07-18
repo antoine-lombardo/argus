@@ -1,11 +1,14 @@
 import type { Episode, MediaDetails, MediaType } from '@argus-tv/plugin-sdk';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 
 import { usePlayerStore } from '@/application/stores/player-store';
-import { getFixtureDetails, mediaIdKey, parseMediaIdKey } from '@/domain';
+import { mediaIdKey, parseMediaIdKey } from '@/domain';
 import { Focusable, FocusGuide } from '@/platform/focus';
+import { bootPlugins } from '@/platform/kernel/boot';
+import { pluginKernel } from '@/platform/kernel';
 import { ThemedText } from '@/presentation/components/themed-text';
 import { Screen } from '@/presentation/components/tv';
 import { useScreenDimensions } from '@/presentation/hooks/use-screen-dimensions';
@@ -81,7 +84,7 @@ function ActionButton({
 }
 
 /**
- * Unified detail layout for movie / series / episode / liveEvent fixtures.
+ * Unified detail layout — metadata from the owning plugin via the kernel.
  */
 export default function DetailScreen() {
   const theme = useTheme();
@@ -102,7 +105,45 @@ export default function DetailScreen() {
           `${params.pluginId}/${params.type}/${params.providerId}`,
         )
       : null;
-  const details = id ? getFixtureDetails(id) : undefined;
+
+  const [details, setDetails] = useState<MediaDetails | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!id) {
+        setLoading(false);
+        setLoadError('Missing media id');
+        return;
+      }
+      try {
+        await bootPlugins();
+        const d = await pluginKernel.getDetails(id.pluginId, id);
+        if (!cancelled) setDetails(d);
+      } catch (err) {
+        if (!cancelled) {
+          setLoadError(err instanceof Error ? err.message : String(err));
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [id?.pluginId, id?.type, id?.providerId]);
+
+  if (loading) {
+    return (
+      <FocusGuide autoFocus style={styles.root}>
+        <Screen>
+          <ActivityIndicator color={theme.tint} />
+        </Screen>
+      </FocusGuide>
+    );
+  }
 
   if (!details) {
     return (
@@ -110,7 +151,7 @@ export default function DetailScreen() {
         <Screen>
           <ThemedText type="title">Not found</ThemedText>
           <ThemedText themeColor="textSecondary">
-            This title isn’t in the fixture catalog.
+            {loadError ?? 'This title isn’t available from its plugin.'}
           </ThemedText>
           <ActionButton
             label="Back"

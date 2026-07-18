@@ -254,10 +254,14 @@ flowchart LR
   end
 ```
 
-- **Format (default):** a zip named `*.argus-plugin` containing `manifest.json`, a single pre-bundled `index.js`, optional `assets/`, and a detached signature.
+- **Format (default):** a zip named `*.argus-plugin` containing `manifest.json`, a single pre-bundled **CJS** `index.js`, optional `assets/`, and a detached signature.
 - **Entry point:** `index.js` default-exports the `ArgusPlugin` object.
-- **Dependencies:** plugins bundle their own deps; the SDK types are `devDependencies` only (no runtime SDK coupling in v0).
+- **Dependencies:** plugins **bundle** their own pure-JS deps into `index.js`. `@argus-tv/plugin-sdk` is a `devDependency` (types + tiny runtime such as `ArgusError` inlined). Host recognizes errors via duck-typing. Host I/O is only through injected `HostContext` — see [PLUGIN-AUTHORING.md](PLUGIN-AUTHORING.md).
+- **Phase 3 load path:** in `__DEV__`, Metro may watch a sibling example for HMR; release builds install from the on-device **plugin store** (seeded from bundled assets, later from GitHub Pages repos). Both call `pluginKernel.registerPlugin`. See [PLUGIN-AUTHORING.md](PLUGIN-AUTHORING.md).
+- **Official repo:** static **GitHub Pages** catalog (`argus-repo-index`), Kodi-style — same format as third-party repos.
 - **Native code in plugins:** **not allowed in v1** (JS-only), which keeps hot-update viable and store-safe.
+- **Secure storage:** per-plugin `expo-secure-store` namespaces — [ADR 0007](adr/0007-secure-storage-expo-secure-store.md).
+- **apiVersion (0.x):** host requires exact `manifest.apiVersion === API_VERSION`.
 
 ### Manifest (sketch)
 
@@ -266,6 +270,7 @@ flowchart LR
   "id": "com.example.provider",
   "name": "Example Provider",
   "version": "1.2.0",
+  "build": 1,
   "apiVersion": "0.1",
   "entry": "index.js",
   "capabilities": ["search", "catalog", "vod", "live", "auth", "library"],
@@ -296,17 +301,23 @@ flowchart TB
   Update -->|newer version| Notify[Offer update]
 ```
 
-### Index format (default)
+### Index format
 
-Single `index.json` per repo (paginate later if needed):
+`index.json` is always the **main** channel. Optional `channels[]` advertise
+extra catalogs (repo-defined). See [ADR 0008](adr/0008-plugin-version-build-channels.md).
 
 ```json
 {
-  "repo": {
-    "id": "argus-official",
-    "name": "Argus Official",
-    "signingKey": "ed25519:BASE64_PUBLIC_KEY"
-  },
+  "apiVersion": "0.1",
+  "id": "argus.official",
+  "name": "Argus Official",
+  "channels": [
+    {
+      "id": "experimental",
+      "name": "Experimental",
+      "index": "channels/experimental.json"
+    }
+  ],
   "plugins": [
     {
       "id": "com.example.provider",
@@ -314,11 +325,11 @@ Single `index.json` per repo (paginate later if needed):
       "versions": [
         {
           "version": "1.2.0",
+          "build": 7,
           "apiVersion": "0.1",
           "platforms": ["tvos", "androidtv"],
-          "url": "https://.../example-1.2.0.argus-plugin",
-          "sha256": "…",
-          "signature": "…"
+          "url": "plugins/com.example.provider/1.2.0/7/com.example.provider-1.2.0+7.argus-plugin",
+          "sha256": "…"
         }
       ]
     }
@@ -326,15 +337,17 @@ Single `index.json` per repo (paginate later if needed):
 }
 ```
 
-Repo system rules (defaults):
+Repo system rules:
 
-- **Artifact hosting:** anywhere HTTPS-reachable (GitHub Releases, S3, static host). The index points to absolute URLs.
-- **Private repo auth (default):** optional bearer token stored with the repo entry; secret-URL also works.
-- **Channels:** single channel in v1; `stable`/`beta` deferred.
+- **Artifact hosting:** relative URLs on the same Pages site, or absolute HTTPS.
+- **Channels:** dynamic per repo; empty `channels` ⇒ host shows no picker. Main is always `index.json`.
+- **Update identity:** `(version, build)` — higher semver or same semver with higher build.
+- **Official publish:** experimental on `dev` pushes; promote same build on merge to `main`.
 - **Conflicts:** if two repos expose the same `pluginId`, the user chooses the source; the host records the origin.
 - **Rollback:** the index lists multiple versions so users can pin/install an older one.
 - **Dependency plugins:** deferred to a later version (v1 plugins are self-contained).
 - **Offline / sideload:** installing a local `.argus-plugin` file is supported for plugin authors.
+- **Private repo auth (default):** optional bearer token stored with the repo entry; secret-URL also works.
 
 ---
 
@@ -550,6 +563,6 @@ Decisions above marked **(default)** are provisional. These warrant an ADR under
 5. **Media aggregation** — cross-provider dedup/matching strategy and identifiers.
 6. **Continue-watching reconciliation** — precise merge semantics across host and plugins.
 
-**Accepted ADRs:** [0001](adr/0001-plugin-contract-ts-interfaces.md) (plugin contract & runtime), [0002](adr/0002-multi-repo-layout.md) (multi-repo layout), [0003](adr/0003-app-versioning.md) (host versioning), [0004](adr/0004-tv-ui-focus.md) (TV focus), [0006](adr/0006-player-expo-video.md) (player shell).
+**Accepted ADRs:** [0001](adr/0001-plugin-contract-ts-interfaces.md) (plugin contract & runtime), [0002](adr/0002-multi-repo-layout.md) (multi-repo layout), [0003](adr/0003-app-versioning.md) (host versioning), [0004](adr/0004-tv-ui-focus.md) (TV focus), [0006](adr/0006-player-expo-video.md) (player shell), [0007](adr/0007-secure-storage-expo-secure-store.md) (per-plugin secure storage), [0008](adr/0008-plugin-version-build-channels.md) (plugin version+build & channels).
 
 Each resolved ADR should update the relevant section here and the [implementation plan](IMPLEMENTATION-PLAN.md).

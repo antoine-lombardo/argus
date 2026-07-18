@@ -8,6 +8,7 @@ import { useTheme } from '@/presentation/hooks/use-theme';
 const NAV_ITEMS = [
   { href: '/', label: 'Home' },
   { href: '/search', label: 'Search' },
+  { href: '/live', label: 'Live' },
   { href: '/library', label: 'Library' },
   { href: '/settings', label: 'Settings' },
   { href: '/tv_focus', label: 'Focus' },

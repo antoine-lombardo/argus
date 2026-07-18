@@ -44,10 +44,11 @@ that publishes to npm (provenance, `next` dist-tag for `0.x`). Full runbook:
 
 ## Before writing code
 
-1. Read [README.md](README.md), [docs/VISION.md](docs/VISION.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md), [docs/PACKAGING.md](docs/PACKAGING.md), [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md), and [docs/PLUGIN-SYSTEM.md](docs/PLUGIN-SYSTEM.md).
+1. Read [README.md](README.md), [docs/VISION.md](docs/VISION.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md), [docs/PACKAGING.md](docs/PACKAGING.md), [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md), [docs/PLUGIN-SYSTEM.md](docs/PLUGIN-SYSTEM.md), and [docs/PLUGIN-AUTHORING.md](docs/PLUGIN-AUTHORING.md).
 2. Treat items marked **(default)** or listed under open questions as **provisional**. Do not lock a plugin runtime, sandbox, or DRM approach without an ADR.
 3. Prefer design notes, ADRs, or RFCs in `docs/` before scaffolding packages or dependencies.
 4. When implementing, work through [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md) and **keep it updated** (check off tasks, add notes, link ADRs/PRs).
+5. Plugin authors: start from `argus-plugins/packages/example` and follow [PLUGIN-AUTHORING.md](docs/PLUGIN-AUTHORING.md).
 
 ## Scope rules
 

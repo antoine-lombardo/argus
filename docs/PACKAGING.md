@@ -234,9 +234,10 @@ Before the first EAS build from CI:
    - Run **Build host app** with profile **`staging_tv`** + **Submit to store tracks** (the `submit-tvos` job uploads via `altool -t appletvos`). Do **not** use `eas submit` for tvOS — see the gotcha above.
 
 6. **Android TV / Play internal** (store install without public release):
-   - Google Play Developer account + Play Console app
-   - Google service account key in EAS (`eas credentials`)
+   - Google Play Developer account + Play Console app (`net.oxoc.argus`)
+   - Google service account key in EAS (`eas credentials`) + app-level Play access (“Déployer… canaux de test”)
    - Run **Build host app** with profile **`staging_tv`** + **Submit to store tracks**
+   - **Status (2026-07-18):** first internal release (0.1.0) published to testers via EAS submit. Store details URL / listing name can stay 404 / “unreviewed” for a while after first upload — publishing path is verified; Play install from the opt-in link is **on hold** until Google’s listing catches up. Meanwhile use workflow AAB/APK + `adb` (or `preview_tv`).
 
 ### Secrets
 
@@ -348,6 +349,33 @@ plugin depend on. It lives in the `argus-plugin-sdk` repo and is **types-first**
 
 > The `@argus-tv` npm org is owned by the project. `publishConfig.access` is
 > `public` so the scoped package is publicly installable.
+
+---
+
+## Plugin packaging (`argus-plugins` → `argus-repo-index`)
+
+Official plugins ship as `.argus-plugin` zips on GitHub Pages. See
+[ADR 0008](adr/0008-plugin-version-build-channels.md) and
+[PLUGIN-AUTHORING.md](PLUGIN-AUTHORING.md).
+
+| Channel | Index file | Trigger |
+|---------|------------|---------|
+| main | `index.json` | Merge `dev` → `main` in `argus-plugins` (promote, no rebuild) |
+| experimental | `channels/experimental.json` | Every push to `dev` (new `build`) |
+
+Artifact path: `plugins/<id>/<version>/<build>/<id>-<version>+<build>.argus-plugin`.
+
+**CI secret:** `REPO_INDEX_TOKEN` on `argus-plugins` (write access to
+`argus-repo-index`). Create a long-lived **`dev`** branch and enable Pages on
+the index repo.
+
+Local smoke (sibling checkouts):
+
+```bash
+cd argus-plugins
+npm run publish:experimental
+npm run publish:main
+```
 
 ---
 

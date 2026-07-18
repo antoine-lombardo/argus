@@ -4,7 +4,8 @@ import { StyleSheet, View } from 'react-native';
 
 import { useFocusRestoreStore } from '@/application/stores/focus-restore-store';
 import { useSearchStore } from '@/application/stores/search-store';
-import { mediaIdKey, searchFixtures } from '@/domain';
+import { aggregateSearch, mediaIdKey } from '@/domain';
+import { bootPlugins } from '@/platform/kernel/boot';
 import { ThemedText } from '@/presentation/components/themed-text';
 import { PosterGrid, Screen, TvKeyboard } from '@/presentation/components/tv';
 import { useRestoreFocusKey } from '@/presentation/hooks/use-restore-focus-key';
@@ -13,9 +14,7 @@ import { useTheme } from '@/presentation/hooks/use-theme';
 
 const DEBOUNCE_MS = 300;
 
-/**
- * Search — on-screen TV keyboard + debounced fixture results grid.
- */
+/** Search — federated query across enabled plugins. */
 export default function SearchScreen() {
   const theme = useTheme();
   const router = useRouter();
@@ -26,29 +25,72 @@ export default function SearchScreen() {
   const query = useSearchStore((s) => s.query);
   const status = useSearchStore((s) => s.status);
   const results = useSearchStore((s) => s.results);
+  const error = useSearchStore((s) => s.error);
   const appendChar = useSearchStore((s) => s.appendChar);
   const backspace = useSearchStore((s) => s.backspace);
   const setResults = useSearchStore((s) => s.setResults);
+  const setError = useSearchStore((s) => s.setError);
 
   useEffect(() => {
+    let cancelled = false;
     const handle = setTimeout(() => {
-      if (!query.trim()) {
-        useSearchStore.setState({ results: [], status: 'idle', error: null });
-        return;
-      }
-      setResults(searchFixtures(query));
+      void (async () => {
+        if (!query.trim()) {
+          useSearchStore.setState({ results: [], status: 'idle', error: null });
+          return;
+        }
+        try {
+          await bootPlugins();
+          const result = await aggregateSearch(query, (partial) => {
+            if (cancelled) return;
+            // Don't clear a pending error while partials arrive empty.
+            if (partial.errors.length > 0 && partial.items.length === 0) {
+              useSearchStore.setState({
+                results: [],
+                status: 'error',
+                error: partial.errors
+                  .map((e) => `${e.pluginId}: ${e.message}`)
+                  .join('\n'),
+              });
+              return;
+            }
+            setResults(partial.items);
+          });
+          if (cancelled) return;
+          if (result.errors.length > 0 && result.items.length === 0) {
+            useSearchStore.setState({
+              results: [],
+              status: 'error',
+              error: result.errors
+                .map((e) => `${e.pluginId}: ${e.message}`)
+                .join('\n'),
+            });
+          } else {
+            setResults(result.items);
+          }
+        } catch (err) {
+          if (!cancelled) {
+            setError(err instanceof Error ? err.message : String(err));
+          }
+        }
+      })();
     }, DEBOUNCE_MS);
-    return () => clearTimeout(handle);
-  }, [query, setResults]);
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
+  }, [query, setResults, setError]);
 
   const hint =
     status === 'idle'
-      ? 'Type to search fixtures'
+      ? 'Type to search plugins (try THROW to demo errors)'
       : status === 'loading'
         ? 'Searching…'
-        : results.length === 0
-          ? 'No matches'
-          : `${results.length} result${results.length === 1 ? '' : 's'}`;
+        : error
+          ? error
+          : results.length === 0
+            ? 'No matches'
+            : `${results.length} result${results.length === 1 ? '' : 's'}`;
 
   return (
     <Screen style={styles.screen}>

@@ -1,25 +1,15 @@
 /**
- * Domain layer — provider-agnostic media model and aggregation.
+ * Domain layer — provider-agnostic helpers and aggregation.
  *
- * Media DTOs live in `@argus-tv/plugin-sdk`. Host fixtures and domain helpers
- * land here until real plugins feed the same shapes.
+ * Media DTOs live in `@argus-tv/plugin-sdk`. Catalog data comes from plugins
+ * via the kernel; library seeds remain host-local until Phase 6.
  */
 
-export { fixtureDetails, getFixtureDetails } from './fixtures/details';
-export { fixtureMedia, homeRows } from './fixtures/home-rows';
 export {
   libraryContinueWatching,
   libraryFavorites,
   resolveFixtureMedia,
+  resolveLibraryMedia,
 } from './fixtures/library';
-export {
-  CLEAR_HLS_URL,
-  FAIRPLAY_HLS,
-  WIDEVINE_DASH,
-  getFixturePlayback,
-  playbackLabel,
-} from './fixtures/playback';
-export { fixturePlugins } from './fixtures/plugins';
-export { searchCatalog, searchFixtures } from './fixtures/search';
+export { aggregateHomeRows, aggregateSearch } from './search/aggregate';
 export { mediaIdKey, parseMediaIdKey } from './media-id';
-

@@ -31,3 +31,5 @@ Link accepted ADRs from [../ARCHITECTURE.md](../ARCHITECTURE.md), [../PLUGIN-SYS
 | [0004](0004-tv-ui-focus.md) | TV UI focus — native react-native-tvos primitives |
 | [0005](0005-player-react-native-video.md) | ~~Player shell — react-native-video v7~~ (superseded by 0006) |
 | [0006](0006-player-expo-video.md) | Player shell — expo-video |
+| [0007](0007-secure-storage-expo-secure-store.md) | Per-plugin secure storage — expo-secure-store |
+| [0008](0008-plugin-version-build-channels.md) | Plugin version+build & dynamic repo channels |

@@ -13,10 +13,10 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 
 | Field          | Value                                                     |
 | -------------- | --------------------------------------------------------- |
-| Current phase  | Phase 2 (2b DRM spike done; 2c done; 2d packaging open)   |
-| Last updated   | 2026-07-17                                                |
-| Next milestone | Finish 2d packaging leftovers, then Phase 3 plugin kernel |
-| Blockers       | —                                                         |
+| Current phase  | Phase 4 in progress — catalog/publish + channel UX started |
+| Last updated   | 2026-07-18                                                |
+| Next milestone | Phase 4 repo fetch / install / update UI                  |
+| Blockers       | — (Play store listing URL/name review can lag; on hold)   |
 
 ---
 
@@ -85,17 +85,17 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 ### 2d. Build & distribution (see [PACKAGING.md](PACKAGING.md))
 
 - [x] Add `eas.json` with `development` / `preview` / `production` profiles (+ `*_tv` variants); versioning wired: Changesets for `expo.version`, EAS `autoIncrement` + `appVersionSource: remote` for build numbers ([ADR 0003](adr/0003-app-versioning.md)) (2026-07-15)
-- [ ] Android TV: produce a signed APK; install on a real device via `adb install` — `build-host.yml` on `argus@*` tag (needs `EXPO_TOKEN`)
+- [x] Android TV: signed store AAB via EAS `staging_tv` + keystore in EAS (2026-07-18); `adb`/APK path still available via `preview_tv`
 - [x] Link EAS project (`eas init`, `@argus-tv/argus`, `extra.eas.projectId` in `app.json`) (2026-07-15)
-- [ ] Manage Android upload keystore as a CI secret — deferred; EAS manages credentials by default (`preview_tv` uses `withoutCredentials` for fast internal APKs)
+- [x] Android upload keystore — EAS-managed (generated 2026-07-18 for `staging_tv`)
 - [x] `ci.yml`: typecheck + lint on PR (Linux runner) (2026-07-15)
 - [x] `build-host.yml`: EAS Android TV + tvOS on `argus@*` tag / dispatch → artifacts + GitHub Release (2026-07-15)
 - [x] `staging_tv` + `submit.staging`: store-signed builds → TestFlight internal + Play internal (`eas.json`, `build-host.yml`) (2026-07-15)
 - [x] Apple Developer Program enrollment + App Store Connect tvOS app + `ascAppId` `6791784830` in `eas.json` (2026-07-16)
-- [ ] Google Play Developer account + Play Console Android TV app + service account in EAS
+- [x] Google Play Developer account + Play Console app (`net.oxoc.argus`) + service account in EAS (2026-07-18)
 - [x] tvOS: first TestFlight upload succeeded — build 10 IPA delivered via `altool -t appletvos` (2026-07-17); CI `submit-tvos` job (`macos-latest`) automates it with `ASC_API_KEY_*` secrets
 - [x] tvOS: build 11 on TestFlight and installed on a physical Apple TV (2026-07-17)
-- [ ] Android TV: first Play internal via **Build host app** (`staging_tv` + submit)
+- [~] Android TV: first Play internal release **published** to testers (0.1.0, 2026-07-18) — opt-in → Play details URL still 404 / “Non examinée” until Google’s first listing review; install via Play on hold; use artifact/`adb` meanwhile
 - [ ] (Optional) Firebase App Distribution for Android testers
 
 **Exit criteria:** app runs on both TV platforms, navigates via D-pad, plays a clear stream, renders fixture data; a tagged commit produces installable Android TV + tvOS builds via GitHub Actions.
@@ -106,18 +106,19 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 
 **Goal:** load and safely call an in-process JS plugin through the contract.
 
-- [ ] Plugin kernel: load bundle, instantiate, hold instance, enable/disable
-- [ ] Call wrapper: per-call timeout, `AbortSignal`, error boundary, typed errors
-- [ ] Circuit breaker: disable plugin after N failures, surface prompt
-- [ ] Host services impl: HTTP client (timeout/retry), structured logger
-- [ ] Per-plugin secure storage namespace (native keychain module); ADR: **secure storage**
-- [ ] Per-plugin cache / KV store
-- [ ] Settings access wired to plugin `settingsSchema`
-- [ ] Build the **stub plugin** (in the `argus-plugins` repo) implementing search/getDetails/getPlayback/getLive against fixtures
-- [ ] Host loads the stub plugin and renders its results in the real screens
-- [ ] Federated search aggregator: parallel fan-out, partial results, timeout, dedup
+- [x] Plugin kernel: register/load, hold instance, enable/disable (`src/platform/kernel/`) (2026-07-18)
+- [x] Call wrapper: per-call timeout, `AbortSignal`, error boundary, duck-typed `ArgusError` (2026-07-18)
+- [x] Circuit breaker: disable after N **unexpected** failures; Settings shows reason (2026-07-18)
+- [x] Host services: HTTP (timeout/retry), structured logger (`src/platform/host/`) (2026-07-18)
+- [x] Per-plugin secure storage namespace (`expo-secure-store`); ADR [0007](adr/0007-secure-storage-expo-secure-store.md) (2026-07-18)
+- [x] Per-plugin cache / KV store (bounded + TTL) (2026-07-18)
+- [x] Settings access API (`SettingsAccess`); form renderer deferred — empty schema on example (2026-07-18)
+- [x] **Example plugin** (`argus-plugins/packages/example`, `@argus-tv/plugin-example`) — search/getDetails/getPlayback/getLive fixtures + esbuild CJS (2026-07-18)
+- [x] Host loads the example plugin and renders Home/Search/Detail/Player/Live through the kernel (2026-07-18)
+- [x] Federated search aggregator: parallel fan-out, partial results, same-key dedup (2026-07-18)
+- [x] Authoring docs: [PLUGIN-AUTHORING.md](PLUGIN-AUTHORING.md) (2026-07-18)
 
-**Exit criteria:** stub plugin drives Home/Search/Detail/Player through the kernel; a thrown plugin error is contained and shown gracefully.
+**Exit criteria:** example plugin drives Home/Search/Detail/Player through the kernel; a thrown plugin error is contained and shown gracefully.
 
 ---
 
@@ -125,9 +126,11 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 
 **Goal:** install/update/remove plugins from a repo index.
 
-- [ ] Define `index.json` schema (repo meta + plugins + versions + hashes + signature refs); ADR: **repo index format**
+- [x] Define `index.json` schema (main channel + dynamic `channels[]`, `(version, build)`, hashes); ADR: [0008](adr/0008-plugin-version-build-channels.md) (2026-07-18)
+- [x] Official publish automation: experimental on `dev` push, promote on `main` merge (`argus-plugins` CI → `argus-repo-index`) (2026-07-18)
+- [x] Host: per-repo channel preference + Settings picker (hidden if one channel; disabled when HMR) (2026-07-18)
 - [ ] Repo manager: add/remove repo URLs, fetch + cache index
-- [ ] Version resolution (apiVersion compatibility, platform match, newest/pinned)
+- [ ] Version resolution (apiVersion compatibility, platform match, newest by version+build / pinned)
 - [ ] Download `.argus-plugin` artifact; verify sha256
 - [ ] Install to plugin store; register with kernel; uninstall/cleanup
 - [ ] Update check + "update available" flow
@@ -178,11 +181,11 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 **Goal:** prove the contributor path on the multi-repo layout that already exists ([ADR 0002](adr/0002-multi-repo-layout.md)).
 
 - [x] Release automation for `@argus-tv/plugin-sdk` (Changesets + GitHub Actions, npm provenance, `next` dist-tag) — see [PACKAGING.md](PACKAGING.md#sdk-npm-package-argus-tvplugin-sdk)
-- [ ] First actual npm publish (needs `NPM_TOKEN` secret + org PR-permission enabled), then switch host/plugins off git-dep/`npm link`
-- [ ] Harden `argus-plugins` signed-build CI → `argus-repo-index`
+- [ ] First actual npm publish of `build` on `PluginManifest` (changeset `manifest-build`; merge Version Packages PR)
+- [x] `argus-plugins` publish CI → `argus-repo-index` (experimental / promote; sha256; signing later) (2026-07-18)
 - [ ] Plugin template / `create-argus-plugin` (or documented copy-the-stub)
 - [ ] One **reference plugin** against a legal/open API exercising the full contract
-- [ ] Contributor docs: writing, building, signing, publishing a plugin
+- [x] Contributor docs: writing, building, publishing a plugin — [PLUGIN-AUTHORING.md](PLUGIN-AUTHORING.md) (signing still Phase 5)
 
 **Exit criteria:** a new plugin can be built against the published SDK and installed from the official repo.
 
@@ -193,7 +196,7 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 - Phone + tablet layouts; web target
 - Cloud sync for library across devices
 - Marketplace / discovery UI for plugins
-- Repo channels (stable/beta), plugin dependencies, rollback UX
+- Plugin dependencies, richer rollback UX
 - DVR / start-over for live; skip-intro
 - Platform integrations: tvOS top shelf, Android TV Leanback recommendations
 - Runtime isolation upgrade (worker/WebView) if in-process proves risky
@@ -239,6 +242,9 @@ Record confirmations/changes to `(default)` decisions here; link the ADR.
 | 2026-07-17 | Regenerated all icons from `assets/brand/icon-mark.svg` via `scripts/generate-icons.mjs` (app/adaptive/splash/TV) | — | Native rebuild / TestFlight to see ATV home icon |
 | 2026-07-17 | In-app `BrandLogo` uses SVG paths (`BrandMarkSvg` + `react-native-svg`); sidebar + Settings About | — | Native rebuild if `react-native-svg` not linked yet |
 | 2026-07-17 | Removed Expo template assets (`expo.icon`, logos, badges, tabIcons, glow) + unused `WebBadge` | — | Assets tree is Argus-only |
+| 2026-07-18 | Play Console: `net.oxoc.argus` + EAS GSA + first internal release 0.1.0 published to testers | [PACKAGING](PACKAGING.md) | Store details URL/name review on hold; publishing path verified |
+| 2026-07-18 | Phase 3: plugin kernel + host services + example via store/seed; dev HMR via Metro sibling watch; official repo = GitHub Pages | [0007](adr/0007-secure-storage-expo-secure-store.md), [PLUGIN-AUTHORING](PLUGIN-AUTHORING.md) | Permissions honor-system until isolation ADR; Phase 4 repo fetch UI |
+| 2026-07-18 | Plugin `(version, build)` + dynamic channels; CI: experimental on `dev`, promote on `main`; Settings channel picker | [0008](adr/0008-plugin-version-build-channels.md) | Needs `REPO_INDEX_TOKEN` + `dev` branch; SDK changeset for `build` |
 
 ---
 

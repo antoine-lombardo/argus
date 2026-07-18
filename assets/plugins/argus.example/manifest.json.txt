@@ -1,0 +1,25 @@
+{
+  "id": "argus.example",
+  "name": "Argus Example",
+  "version": "0.1.0",
+  "build": 1,
+  "apiVersion": "0.1",
+  "entry": "index.js",
+  "capabilities": [
+    "search",
+    "catalog",
+    "vod",
+    "live"
+  ],
+  "permissions": [
+    "network"
+  ],
+  "platforms": [
+    "tvos",
+    "androidtv",
+    "ios",
+    "android"
+  ],
+  "description": "Fixture-backed reference plugin. Copy this package to start your own.",
+  "author": "Argus"
+}

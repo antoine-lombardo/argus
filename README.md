@@ -132,6 +132,7 @@ TV builds use [`@react-native-tvos/config-tv`](https://github.com/react-native-t
 | [docs/PACKAGING.md](docs/PACKAGING.md) | How the app is built, distributed to test devices, and built in CI |
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | How we plan to build Argus |
 | [docs/PLUGIN-SYSTEM.md](docs/PLUGIN-SYSTEM.md) | Plugin design goals and open questions |
+| [docs/PLUGIN-AUTHORING.md](docs/PLUGIN-AUTHORING.md) | How to write a provider plugin (copy the example) |
 | [AGENTS.md](AGENTS.md) | Guidance for coding agents |
 
 ## License

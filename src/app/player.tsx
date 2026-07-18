@@ -7,16 +7,14 @@ import {
   useRouter,
 } from 'expo-router';
 import { useVideoPlayer, VideoView, type VideoPlayer } from 'expo-video';
-import { useCallback, useEffect, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { usePlayerStore } from '@/application/stores/player-store';
-import {
-  getFixturePlayback,
-  parseMediaIdKey,
-  playbackLabel,
-} from '@/domain';
+import { mediaIdKey, parseMediaIdKey } from '@/domain';
 import { Focusable, FocusGuide } from '@/platform/focus';
+import { bootPlugins } from '@/platform/kernel/boot';
+import { pluginKernel } from '@/platform/kernel';
 import {
   drmBlockReason,
   drmSupportedOnPlatform,
@@ -230,10 +228,11 @@ function ActivePlayer({ stream, title, mediaKey }: ActivePlayerProps) {
 
 /**
  * Full-screen player shell — expo-video (ADR 0006).
- * Maps `StreamDescriptor` (incl. DRM) → `VideoSource`.
+ * Stream from the owning plugin via the kernel.
  */
 export default function PlayerScreen() {
   const router = useRouter();
+  const theme = useTheme();
 
   const params = useLocalSearchParams<{
     pluginId?: string;
@@ -246,16 +245,62 @@ export default function PlayerScreen() {
       ? `${params.pluginId}/${params.type}/${params.providerId}`
       : null;
   const id = mediaKey ? parseMediaIdKey(mediaKey) : null;
-  const stream = id ? getFixturePlayback(id) : undefined;
-  const title = id ? playbackLabel(id) : 'Player';
+
+  const [stream, setStream] = useState<StreamDescriptor | null>(null);
+  const [title, setTitle] = useState('Player');
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const goBack = useCallback(() => {
     router.back();
   }, [router]);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!id) {
+        setLoading(false);
+        setLoadError('Missing media id');
+        return;
+      }
+      try {
+        await bootPlugins();
+        const [s, details] = await Promise.all([
+          pluginKernel.getPlayback(id.pluginId, id),
+          pluginKernel.getDetails(id.pluginId, id).catch(() => null),
+        ]);
+        if (cancelled) return;
+        setStream(s);
+        setTitle(details?.title ?? mediaIdKey(id));
+      } catch (err) {
+        if (!cancelled) {
+          setLoadError(err instanceof Error ? err.message : String(err));
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [id?.pluginId, id?.type, id?.providerId]);
+
+  if (loading) {
+    return (
+      <FocusGuide autoFocus style={[styles.root, { backgroundColor: theme.background }]}>
+        <View style={styles.fallback}>
+          <ActivityIndicator color={theme.tint} />
+        </View>
+      </FocusGuide>
+    );
+  }
+
   if (!stream || !mediaKey) {
     return (
-      <CannotPlay message="No fixture stream for this item." onBack={goBack} />
+      <CannotPlay
+        message={loadError ?? 'No stream for this item.'}
+        onBack={goBack}
+      />
     );
   }
 

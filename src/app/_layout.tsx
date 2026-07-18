@@ -4,9 +4,10 @@ import {
   Stack,
   ThemeProvider,
 } from 'expo-router';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Platform, useColorScheme } from 'react-native';
 
+import { bootPlugins } from '@/platform/kernel/boot';
 import { AnimatedSplashOverlay } from '@/presentation/components/animated-icon';
 import { useTheme } from '@/presentation/hooks/use-theme';
 
@@ -17,6 +18,12 @@ import { useTheme } from '@/presentation/hooks/use-theme';
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const theme = useTheme();
+
+  useEffect(() => {
+    void bootPlugins().catch((err) => {
+      console.error('[root] plugin boot failed', err);
+    });
+  }, []);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
