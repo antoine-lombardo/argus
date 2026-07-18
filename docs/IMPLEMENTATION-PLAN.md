@@ -13,10 +13,10 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 
 | Field          | Value                                                     |
 | -------------- | --------------------------------------------------------- |
-| Current phase  | Phase 2 (2c done; 2b DRM spike wired, device verify open) |
+| Current phase  | Phase 2 (2c done; 2b FairPlay verified, Widevine open)    |
 | Last updated   | 2026-07-17                                                |
-| Next milestone | Verify Widevine on Android TV; FairPlay on physical ATV   |
-| Blockers       | FairPlay device verify (trying EZDRM public demo)         |
+| Next milestone | Verify Widevine on Android TV                             |
+| Blockers       | —                                                         |
 
 ---
 
@@ -67,10 +67,10 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 
 ### 2b. DRM spike (high risk — do early)
 
-- [~] Spike in-app playback with DRM on **tvOS** (FairPlay) and **Android TV** (Widevine) — `toVideoSource` + Home DRM rail; Widevine/FairPlay device verify still open ([ADR 0006](adr/0006-player-expo-video.md))
+- [~] Spike in-app playback with DRM on **tvOS** (FairPlay) and **Android TV** (Widevine) — FairPlay verified on physical ATV (EZDRM); Widevine device verify still open ([ADR 0006](adr/0006-player-expo-video.md))
 - [x] Evaluate: existing RN video lib vs custom Expo native module — chose `expo-video` over RNV v7 (not TV-ready) / Bitmovin / custom module ([ADR 0006](adr/0006-player-expo-video.md); supersedes [0005](adr/0005-player-react-native-video.md)) (2026-07-17)
-- [~] Play a clear HLS stream end-to-end; then a DRM-protected test stream — clear HLS verified; Widevine = Google Tears/UAT; FairPlay = EZDRM public demo (was Axinom); device verify open
-- [x] Write ADR: **DRM player module** — [ADR 0006](adr/0006-player-expo-video.md) (library lock; DRM spike remains)
+- [~] Play a clear HLS stream end-to-end; then a DRM-protected test stream — clear HLS verified; **FairPlay = EZDRM Big Buck Bunny on physical ATV (2026-07-17)**; Widevine = Google Tears/UAT (device verify open)
+- [x] Write ADR: **DRM player module** — [ADR 0006](adr/0006-player-expo-video.md) (library lock; FairPlay path proven; Widevine remains)
 
 ### 2c. Screens (fixtures)
 
@@ -232,6 +232,7 @@ Record confirmations/changes to `(default)` decisions here; link the ADR.
 | 2026-07-17 | EZDRM demos did not play; swapped fixtures → Widevine Google Tears/UAT; FairPlay Axinom + FPS cert + token | [0006](adr/0006-player-expo-video.md) | Re-verify on Android TV emulator + physical ATV |
 | 2026-07-17 | FairPlay fixture hardened: Axinom CMAF cbcs, header-only token, embedded FPS cert, surface player errors | [0006](adr/0006-player-expo-video.md) | Re-test on physical Apple TV; note on-screen error if still fails |
 | 2026-07-17 | FairPlay DRMLoadException on ATV with Axinom; swapped fixture → EZDRM Shaka demo + contentId uuid | [0006](adr/0006-player-expo-video.md) | Re-test on physical Apple TV |
+| 2026-07-17 | **FairPlay verified** on physical ATV — EZDRM Big Buck Bunny plays via expo-video | [0006](adr/0006-player-expo-video.md) | Axinom failure was stream/token path; next: Widevine on Android TV |
 | 2026-07-17 | App branding: Argus eye mark replaces Expo template icons (iOS/Android adaptive/splash + TV stack/topshelf) | — | Needs native rebuild / next TestFlight to show on ATV |
 | 2026-07-17 | Brand mark locked from user SVG (`icon-mark.svg`); warm stone gradient icon set | — | Native rebuild / TestFlight for ATV home icon |
 | 2026-07-17 | Regenerated all icons from `assets/brand/icon-mark.svg` via `scripts/generate-icons.mjs` (app/adaptive/splash/TV) | — | Native rebuild / TestFlight to see ATV home icon |
