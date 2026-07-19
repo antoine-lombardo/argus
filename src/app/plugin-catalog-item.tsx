@@ -51,12 +51,8 @@ export default function PluginCatalogItemScreen() {
 
   const load = useCallback(async () => {
     if (!pluginId) {
-      setError('Missing plugin id');
-      setLoading(false);
-      return;
+      return { error: 'Missing plugin id' as string | null, entry: null as CatalogEntry | null };
     }
-    setLoading(true);
-    setError(null);
     try {
       const list = await listCatalogEntries(repos);
       const hit =
@@ -66,21 +62,32 @@ export default function PluginCatalogItemScreen() {
             (!repoIndexUrl || e.repoIndexUrl === repoIndexUrl),
         ) ?? list.find((e) => e.pluginId === pluginId);
       if (!hit) {
-        setEntry(null);
-        setError('Plugin not found in enabled repositories.');
-      } else {
-        setEntry(hit);
+        return {
+          error: 'Plugin not found in enabled repositories.',
+          entry: null,
+        };
       }
+      return { error: null, entry: hit };
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-      setEntry(null);
-    } finally {
-      setLoading(false);
+      return {
+        error: err instanceof Error ? err.message : String(err),
+        entry: null,
+      };
     }
   }, [pluginId, repoIndexUrl, repos]);
 
   useEffect(() => {
-    void load();
+    let cancelled = false;
+    (async () => {
+      const result = await load();
+      if (cancelled) return;
+      setEntry(result.entry);
+      setError(result.error);
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [load]);
 
   const run = async (action: 'install' | 'update' | 'uninstall') => {
@@ -97,7 +104,9 @@ export default function PluginCatalogItemScreen() {
           `${action === 'update' ? 'Updated' : 'Installed'} ${entry.name} ${formatRelease(entry.latest)}`,
         );
       }
-      await load();
+      const result = await load();
+      setEntry(result.entry);
+      setError(result.error);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err));
     } finally {

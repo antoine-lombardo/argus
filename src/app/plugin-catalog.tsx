@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { useFocusRestoreStore } from '@/application/stores/focus-restore-store';
@@ -45,22 +45,26 @@ export default function PluginCatalogScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      setEntries(await listCatalogEntries(repos));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-      setEntries([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [repos]);
-
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    let cancelled = false;
+    (async () => {
+      try {
+        const next = await listCatalogEntries(repos);
+        if (cancelled) return;
+        setEntries(next);
+        setError(null);
+      } catch (err) {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : String(err));
+        setEntries([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [repos]);
 
   return (
     <Screen style={styles.screen}>
