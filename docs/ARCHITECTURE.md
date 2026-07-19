@@ -535,7 +535,7 @@ flowchart LR
 | `argus-plugins` | Official + stub/reference plugins | Builds signed `.argus-plugin` artifacts |
 | `argus-repo-index` | Official `index.json` + hosted artifacts | GitHub Pages / Releases / static host |
 
-`argus-plugin-sdk` is created first (Phase 1) so the host and plugins depend on a real, versioned contract. **Local development** uses `file:` siblings (`argus` → `file:../argus-plugin-sdk`, example → `file:../../../argus-plugin-sdk`) with Metro watching SDK `src/` for HMR. npm `@argus-tv/plugin-sdk@next` remains for third-party authors and as the published contract.
+`argus-plugin-sdk` is created first (Phase 1) so the host and plugins depend on a real, versioned contract. The **host** depends on the published npm package (`@argus-tv/plugin-sdk`). Optional local sibling checkout lets Metro watch SDK `src/` for HMR without changing `package.json`. The official example may still use a `file:` sibling for its own package.
 
 ---
 

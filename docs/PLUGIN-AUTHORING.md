@@ -12,8 +12,7 @@ How to write an Argus provider plugin. Official and third-party plugins use the
 | Zip + repo zip mirrors | **`.argus-plugin`** + GitHub Pages `index.json` |
 
 ```bash
-npm i -D @argus-tv/plugin-sdk@next   # third-party / no sibling checkout
-# Official local layout: file:../argus-plugin-sdk (host) / file:../../../argus-plugin-sdk (example)
+npm i -D @argus-tv/plugin-sdk   # published contract (host uses ^0.2.0)
 ```
 
 ## Start from the example
@@ -57,12 +56,13 @@ In [`argus-plugins`](https://github.com/antoine-lombardo/argus-plugins):
 
 ## Local development (hot reload)
 
-Clone repos as **siblings** (required for the host `file:` SDK dep and example HMR):
+Clone repos as **siblings** when you want Metro HMR for plugins / optional SDK
+src watching (host itself installs the SDK from **npm**):
 
 ```text
 Git/
-  argus/                 # host — depends on file:../argus-plugin-sdk
-  argus-plugin-sdk/      # required locally (Metro watches src/ for HMR)
+  argus/                 # host — `@argus-tv/plugin-sdk` from npm
+  argus-plugin-sdk/      # optional locally (Metro watches src/ for HMR if present)
   argus-plugins/         # required for example HMR
   argus-repo-index/
   my-private-plugins/    # optional — your other plugin repos (gitignored from argus)
@@ -74,9 +74,10 @@ cd argus && npm install
 cd ../argus-plugins/packages/example && npm install
 ```
 
-- **SDK:** host `package.json` uses `file:../argus-plugin-sdk`. Metro resolves
-  `@argus-tv/plugin-sdk` to **SDK `src/`** and watches it — edit the contract
-  without publishing to npm. TypeScript paths point at the same sources.
+- **SDK:** host `package.json` depends on **`@argus-tv/plugin-sdk` from npm**
+  (CI/EAS too). If a sibling `../argus-plugin-sdk` exists, Metro optionally
+  resolves `@argus-tv/plugin-sdk` to **SDK `src/`** for runtime HMR — it does
+  not change the committed dependency.
 - **HMR plugins (required for `Run`):** copy
   [`dev-plugins.local.json.example`](../dev-plugins.local.json.example) →
   **`dev-plugins.local.json`** (gitignored). **Nothing is hard-coded** — without
@@ -129,10 +130,10 @@ pushes a detail screen (install / update / uninstall). Open an installed
 plugin for enable/disable.
 **Settings → Repositories:** enable/disable a repo and choose a channel.
 
-Third-party authors (no sibling layout) still install the published package:
+Third-party authors install the published package:
 
 ```bash
-npm i -D @argus-tv/plugin-sdk@next
+npm i -D @argus-tv/plugin-sdk
 ```
 
 **Production / TestFlight / Play:** `__DEV__` is false, so Metro HMR is never attempted even if `EXPO_PUBLIC_ARGUS_PLUGIN_LOAD=hmr` was set at build time. Release builds only use the plugin store (seed / repo installs).

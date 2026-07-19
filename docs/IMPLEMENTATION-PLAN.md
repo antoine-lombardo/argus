@@ -14,7 +14,7 @@ Living, step-by-step plan for building Argus. **Update this file as work progres
 | Field          | Value                                                     |
 | -------------- | --------------------------------------------------------- |
 | Current phase  | Phase 4 in progress — catalog/publish + channel UX started |
-| Last updated   | 2026-07-18                                                |
+| Last updated   | 2026-07-19                                                |
 | Next milestone | Phase 4 repo fetch / install / update UI                  |
 | Blockers       | — (Play store listing URL/name review can lag; on hold)   |
 
@@ -245,8 +245,9 @@ Record confirmations/changes to `(default)` decisions here; link the ADR.
 | 2026-07-18 | Play Console: `net.oxoc.argus` + EAS GSA + first internal release 0.1.0 published to testers | [PACKAGING](PACKAGING.md) | Store details URL/name review on hold; publishing path verified |
 | 2026-07-18 | Phase 3: plugin kernel + host services + example via store/seed; dev HMR via Metro sibling watch; official repo = GitHub Pages | [0007](adr/0007-secure-storage-expo-secure-store.md), [PLUGIN-AUTHORING](PLUGIN-AUTHORING.md) | Permissions honor-system until isolation ADR; Phase 4 repo fetch UI |
 | 2026-07-18 | Plugin `(version, build)` + dynamic channels; CI: experimental on `dev`, promote on `main`; Settings channel picker | [0008](adr/0008-plugin-version-build-channels.md) | Needs `REPO_INDEX_TOKEN` + `dev` branch; SDK changeset for `build` |
-| 2026-07-18 | Host + example use `file:` sibling `@argus-tv/plugin-sdk`; Metro HMR on SDK `src/` (no publish for local contract work) | [PLUGIN-AUTHORING](PLUGIN-AUTHORING.md) | EAS `eas-build-pre-install` clones SDK when sibling missing |
+| 2026-07-18 | Host + example use `file:` sibling `@argus-tv/plugin-sdk`; Metro HMR on SDK `src/` (no publish for local contract work) | [PLUGIN-AUTHORING](PLUGIN-AUTHORING.md) | Superseded 2026-07-19: host uses npm |
 | 2026-07-18 | Extra local HMR plugins via gitignored `dev-plugins.local.json` (Metro aliases + generated registry) | [PLUGIN-AUTHORING](PLUGIN-AUTHORING.md) | Official example remains default; private sibling packages never committed |
+| 2026-07-19 | Host depends on published `@argus-tv/plugin-sdk@^0.2.0` (CI/EAS); Metro may still HMR sibling SDK src | [PACKAGING](PACKAGING.md), [PLUGIN-AUTHORING](PLUGIN-AUTHORING.md) | SDK 0.2.0 published (`build` + error helpers) |
 
 ---
 

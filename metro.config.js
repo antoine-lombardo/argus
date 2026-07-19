@@ -96,7 +96,8 @@ function registerDevHmrPlugins(specs) {
 const devHmrSpecs = loadDevHmrPluginSpecs();
 registerDevHmrPlugins(devHmrSpecs);
 
-// Local SDK: package.json uses file:../argus-plugin-sdk; Metro watches src/ for HMR.
+// Optional local SDK HMR: if a sibling checkout exists, prefer its src/ over node_modules.
+// Committed dependency is npm `@argus-tv/plugin-sdk` (CI/EAS); file: is not required.
 if (fs.existsSync(path.join(sdkRoot, 'package.json'))) {
   config.watchFolders.push(sdkRoot);
   config.resolver.extraNodeModules['@argus-tv/plugin-sdk'] = fs.existsSync(sdkEntry)

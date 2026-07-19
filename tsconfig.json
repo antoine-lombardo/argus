@@ -8,9 +8,6 @@
       ],
       "@/assets/*": [
         "./assets/*"
-      ],
-      "@argus-tv/plugin-sdk": [
-        "../argus-plugin-sdk/src/index.ts"
       ]
     }
   },

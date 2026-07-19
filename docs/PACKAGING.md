@@ -187,7 +187,7 @@ flowchart TB
 
 ### Workflows
 
-1. **`ci.yml`** — on PR + push to `main`: `npm ci`, typecheck, lint.
+1. **`ci.yml`** — on PR + push to `main`: `npm ci`, typecheck, lint (uses published `@argus-tv/plugin-sdk` from npm).
 2. **`release.yml`** — on push to `main`: Changesets version PR or `argus@<version>` git tag ([ADR 0003](adr/0003-app-versioning.md)).
 3. **`build-host.yml`** — on `argus@*` tag or manual dispatch: EAS `preview_tv` / `staging_tv` / `production_tv` for Android TV + tvOS → workflow artifacts + GitHub Release; optional store submit on dispatch (Android via `eas submit`; tvOS via the `submit-tvos` altool job → TestFlight internal).
 
@@ -331,11 +331,11 @@ plugin depend on. It lives in the `argus-plugin-sdk` repo and is **types-first**
 - **Dist-tag:** while the contract is `0.x` it publishes under the **`next`**
   tag (`npm i @argus-tv/plugin-sdk@next`); `latest` is reserved for the first
   stable `1.0.0`. Stabilizing means removing `publishConfig.tag` and bumping.
-- **Local iteration:** host and official example use **`file:`** siblings
-  (`file:../argus-plugin-sdk`, `file:../../../argus-plugin-sdk`) with Metro
-  watching SDK `src/` for HMR — no publish required to try contract changes.
-  Third parties install `@argus-tv/plugin-sdk@next`. EAS clones the SDK in
-  `eas-build-pre-install` when the sibling is missing.
+- **Local iteration:** host depends on the **published** npm package
+  (`@argus-tv/plugin-sdk`). Optional: keep a sibling checkout so Metro can
+  watch SDK `src/` for HMR (does not change `package.json`). Official example
+  may still use `file:../../../argus-plugin-sdk` in that package only.
+  Third parties install `@argus-tv/plugin-sdk` from npm.
 
 ### Workflows (in `argus-plugin-sdk`)
 
