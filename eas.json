@@ -40,8 +40,14 @@
       "env": {
         "EXPO_TV": "1"
       },
+      "android": {
+        "distribution": "internal",
+        "buildType": "apk",
+        "withoutCredentials": true
+      },
       "ios": {
-        "simulator": false
+        "simulator": false,
+        "distribution": "store"
       }
     },
     "production": {

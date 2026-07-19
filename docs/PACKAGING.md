@@ -59,11 +59,17 @@ flowchart TB
 
 ### Build profiles (`eas.json`)
 
-| Profile | Use | Android artifact | Store submit |
-|---------|-----|------------------|--------------|
-| `preview_tv` | Fast dev / CI tags | APK (`adb install`) | No |
-| `staging_tv` | Developer-only store testing | AAB | TestFlight internal + Play **internal** |
-| `production_tv` | Public release (later) | AAB | TestFlight + Play **production** |
+| Profile | Use | Android artifact | tvOS artifact | Store submit |
+|---------|-----|------------------|---------------|--------------|
+| `preview_tv` | Fast dev / CI tags | APK (`adb install`, no Play creds) | Store-signed IPA (uses existing tvOS App Store profile; not ad-hoc) | No (optional later via `staging_tv` submit) |
+| `staging_tv` | Developer-only store testing | AAB | Store-signed IPA | TestFlight internal + Play **internal** |
+| `production_tv` | Public release (later) | AAB | Store-signed IPA | TestFlight + Play **production** |
+
+`preview_tv` keeps Android on `distribution: "internal"` (sideload APK) but sets
+iOS to `distribution: "store"`. Ad-hoc / internal iOS credentials are not set up
+in CI; store signing reuses the same tvOS App Store profile as staging. Do not
+flip iOS back to `internal` unless device UDIDs + ad-hoc profiles are configured
+in EAS for non-interactive builds.
 
 `staging_tv` extends `production_tv` with `channel: "staging"` (for future EAS Update). Both store profiles use `distribution: "store"` and a signed upload keystore (EAS-managed by default).
 
@@ -285,6 +291,17 @@ The app has **two independent numbers** ([ADR 0003](adr/0003-app-versioning.md))
 | Marketing version | `expo.version` (from `package.json` via `app.config.js`) | **Changesets** | per release |
 | Build number | `ios.buildNumber` / `android.versionCode` | **EAS** (`autoIncrement`, `appVersionSource: "remote"`) | every build |
 
+### Host ↔ SDK minor lockstep ([ADR 0009](adr/0009-host-sdk-minor-lockstep.md))
+
+**One `X.Y`:** host `argus@X.Y.*`, SDK `@argus-tv/plugin-sdk@~X.Y.0`, and
+`API_VERSION` / `manifest.apiVersion` `"X.Y"`.
+
+On `0.x`: **minor** = contract changed (bump package + `API_VERSION`); **patch** =
+no contract change (`API_VERSION` stays). Pin `"@argus-tv/plugin-sdk": "~X.Y.0"`.
+
+When the SDK cuts a new minor: publish SDK (with matching `API_VERSION`) → host
+Changesets **minor** + update the pin + refresh seed/example `apiVersion`.
+
 **Marketing version (Changesets, no npm publish).** `package.json` `version` is
 the single source of truth; `app.config.js` feeds it into `expo.version`. The
 package is `"private": true` and `.changeset/config.json` sets
@@ -331,11 +348,12 @@ plugin depend on. It lives in the `argus-plugin-sdk` repo and is **types-first**
 - **Dist-tag:** while the contract is `0.x` it publishes under the **`next`**
   tag (`npm i @argus-tv/plugin-sdk@next`); `latest` is reserved for the first
   stable `1.0.0`. Stabilizing means removing `publishConfig.tag` and bumping.
-- **Local iteration:** host depends on the **published** npm package
-  (`@argus-tv/plugin-sdk`). Optional: keep a sibling checkout so Metro can
-  watch SDK `src/` for HMR (does not change `package.json`). Official example
-  may still use `file:../../../argus-plugin-sdk` in that package only.
-  Third parties install `@argus-tv/plugin-sdk` from npm.
+- **Local iteration:** host depends on the **published** npm package on the
+  **same major.minor** as the host ([ADR 0009](adr/0009-host-sdk-minor-lockstep.md)),
+  pinned `~X.Y.0`. Optional: keep a sibling checkout so Metro can watch SDK
+  `src/` for HMR (does not change `package.json`). Official example may still
+  use `file:../../../argus-plugin-sdk` in that package only.
+  Third parties install `@argus-tv/plugin-sdk@~X.Y.0` matching the host line.
 
 ### Workflows (in `argus-plugin-sdk`)
 
